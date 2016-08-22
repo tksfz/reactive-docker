@@ -1,6 +1,6 @@
-package com.kolor.docker.api.entities
+package edu.cornell.cac.docker.api.entities
 
-import com.kolor.docker.api.InvalidRepositoryTagFormatException
+import edu.cornell.cac.docker.api.InvalidRepositoryTagFormatException
 
 
 class RepositoryTag private[RepositoryTag] (val repo: String, val tag: Option[String]) extends DockerEntity {

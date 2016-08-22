@@ -1,12 +1,12 @@
-package com.kolor.docker
+package edu.cornell.cac.docker
 
 
 package object api {
 
-  import com.kolor.docker.api.entities._
-  import com.kolor.docker.api.json.Formats._
+  import edu.cornell.cac.docker.api.entities._
+  import edu.cornell.cac.docker.api.json.Formats._
   
-  implicit val dockerJsonFormats = com.kolor.docker.api.json.Formats
+  implicit val dockerJsonFormats = edu.cornell.cac.docker.api.json.Formats
   
   sealed trait DockerAttachable { }
     

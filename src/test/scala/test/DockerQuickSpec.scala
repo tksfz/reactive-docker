@@ -3,13 +3,13 @@ package test
 
 import org.specs2.mutable.Specification
 import org.specs2.specification.AllExpectations
-import com.kolor.docker.api._
+import edu.cornell.cac.docker.api._
 import org.specs2.specification.Scope
 import org.specs2.specification.Before
 import scala.concurrent.duration.DurationConversions._
 import scala.concurrent.duration._
 import scala.concurrent._
-import com.kolor.docker.api.entities._
+import edu.cornell.cac.docker.api.entities._
 import org.joda.time.DateTime
 import org.specs2.execute._
 import org.specs2.specification._
@@ -23,7 +23,7 @@ import org.slf4j.LoggerFactory
 @RunWith(classOf[JUnitRunner])
 class DockerQuickSpec extends Specification with DefaultDockerAuth {
   
-  import com.kolor.docker.api.json.FormatsV112._
+  import edu.cornell.cac.docker.api.json.FormatsV112._
 
   implicit def defaultAwaitTimeout: Duration = Duration(20, SECONDS)
 

@@ -1,8 +1,8 @@
 
 package test
 
-import com.kolor.docker.api._
-import com.kolor.docker.api.entities._
+import edu.cornell.cac.docker.api._
+import edu.cornell.cac.docker.api.entities._
 import org.slf4j.LoggerFactory
 import org.specs2.mutable.Specification
 import play.api.libs.iteratee._
@@ -55,7 +55,7 @@ class DockerBuildSpec extends Specification with DefaultDockerAuth {
     
    
     "be able to build from Dockerfile DSL" in new DockerContext {
-      import com.kolor.docker.dsl._
+      import edu.cornell.cac.docker.dsl._
       val dockerfile = Dockerfile from "ubuntu" by "me <me@somehost.de>" expose (80, 8080) starting withArgs("ls", "-lah", "/opt/src") add "src/" -> "/opt/src"
       val res = await(docker.dockerfileBuild(dockerfile, "dsl-container"))
       //println(res)
@@ -68,7 +68,7 @@ class DockerBuildSpec extends Specification with DefaultDockerAuth {
     
     
     "be able to build from Dockerfile DSL and fail on error" in new DockerContext {
-      import com.kolor.docker.dsl._
+      import edu.cornell.cac.docker.dsl._
       val dockerfile = Dockerfile from "ubuntu" by "me <me@somehost.de>" run "mkdir -p /opt" install "someNonExistPackage" expose (80, 8080) starting withArgs("ls", "-lah", "/opt/src") add "src/" -> "/opt/src"
       
       //log.info(dockerfile.toString)

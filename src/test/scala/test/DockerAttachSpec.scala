@@ -3,13 +3,13 @@ package test
 
 import org.specs2.mutable.Specification
 import org.specs2.specification.AllExpectations
-import com.kolor.docker.api._
+import edu.cornell.cac.docker.api._
 import org.specs2.specification.Scope
 import org.specs2.specification.Before
 import scala.concurrent.duration.DurationConversions._
 import scala.concurrent.duration._
 import scala.concurrent._
-import com.kolor.docker.api.entities._
+import edu.cornell.cac.docker.api.entities._
 import org.joda.time.DateTime
 import org.specs2.execute._
 import org.specs2.specification._
@@ -17,7 +17,7 @@ import org.specs2.matcher.FutureMatchers.await
 import scala.concurrent.ExecutionContext.Implicits.global
 import org.junit.runner.RunWith
 import org.specs2.runner.JUnitRunner
-import com.kolor.docker.api.json.FormatsV112._
+import edu.cornell.cac.docker.api.json.FormatsV112._
 import play.api.libs.iteratee._
 import org.slf4j.LoggerFactory
 import java.util.concurrent.TimeUnit

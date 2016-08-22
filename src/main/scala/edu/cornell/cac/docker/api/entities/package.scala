@@ -1,4 +1,4 @@
-package com.kolor.docker.api
+package edu.cornell.cac.docker.api
 
 import org.joda.time.DateTime
 

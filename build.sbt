@@ -1,4 +1,4 @@
-organization := "org.almoehi"
+organization := "edu.cornell.cac"
 
 name := "reactive-docker"
 

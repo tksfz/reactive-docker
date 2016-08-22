@@ -2,10 +2,10 @@
 package test
 
 import org.specs2.mutable.Specification
-import com.kolor.docker.api._
+import edu.cornell.cac.docker.api._
 import scala.concurrent.duration._
 import scala.concurrent._
-import com.kolor.docker.api.entities._
+import edu.cornell.cac.docker.api.entities._
 import org.junit.runner.RunWith
 import org.specs2.runner.JUnitRunner
 import play.api.libs.iteratee._
@@ -14,7 +14,7 @@ import org.slf4j.LoggerFactory
 @RunWith(classOf[JUnitRunner])
 class DockerUsecaseSpec extends Specification {
   
-  import com.kolor.docker.api.json.FormatsV112._
+  import edu.cornell.cac.docker.api.json.FormatsV112._
 
   implicit def defaultAwaitTimeout: Duration = Duration(20, SECONDS)
 

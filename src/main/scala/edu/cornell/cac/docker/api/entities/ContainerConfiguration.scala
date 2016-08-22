@@ -1,4 +1,4 @@
-package com.kolor.docker.api.entities
+package edu.cornell.cac.docker.api.entities
 
 import play.api.libs.json._
 

@@ -1,4 +1,4 @@
-package com.kolor.docker.api
+package edu.cornell.cac.docker.api
 
 import dispatch._
 import Defaults._
@@ -13,12 +13,12 @@ import play.api.libs.json.JsArray
 import scala.Some
 import dispatch.StatusCode
 import play.api.libs.json.JsObject
-import com.kolor.docker.api.entities._
+import edu.cornell.cac.docker.api.entities._
 import org.apache.commons.compress.archivers.tar.TarArchiveOutputStream
 import java.util.zip.GZIPOutputStream
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry
 import org.apache.commons.compress.utils.IOUtils
-import com.kolor.docker.dsl.Dockerfile
+import edu.cornell.cac.docker.dsl.Dockerfile
 
 /**
  * helper trait

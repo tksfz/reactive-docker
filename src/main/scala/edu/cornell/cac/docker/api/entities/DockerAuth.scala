@@ -1,4 +1,4 @@
-package com.kolor.docker.api.entities
+package edu.cornell.cac.docker.api.entities
 
 trait DockerAuth{
   private lazy val base64Encoder = new sun.misc.BASE64Encoder()

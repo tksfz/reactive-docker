@@ -2,10 +2,10 @@
 package test
 
 import org.specs2.mutable.Specification
-import com.kolor.docker.api._
+import edu.cornell.cac.docker.api._
 import scala.concurrent.duration._
 import scala.concurrent._
-import com.kolor.docker.api.entities._
+import edu.cornell.cac.docker.api.entities._
 import org.slf4j.LoggerFactory
 
 class DockerEntitySpec extends Specification with DefaultDockerAuth {

@@ -1,4 +1,4 @@
-package com.kolor.docker.dsl
+package edu.cornell.cac.docker.dsl
 
 import scala.collection.immutable.Nil
 import scala.collection.generic.CanBuildFrom

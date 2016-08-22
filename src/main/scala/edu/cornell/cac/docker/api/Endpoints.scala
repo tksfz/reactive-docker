@@ -1,9 +1,9 @@
-package com.kolor.docker.api
+package edu.cornell.cac.docker.api
 
 import com.netaporter.uri.dsl._
 import com.netaporter.uri.Uri.parse
 import com.netaporter.uri.Uri
-import com.kolor.docker.api.entities._
+import edu.cornell.cac.docker.api.entities._
 
 object Endpoints {
 

@@ -1,5 +1,5 @@
-import com.kolor.docker.api._
-import com.kolor.docker.api.entities._
+import edu.cornell.cac.docker.api._
+import edu.cornell.cac.docker.api.entities._
 import scala.concurrent.duration.Duration
 import org.specs2.specification._
 import java.util.concurrent.TimeUnit._

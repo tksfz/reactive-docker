@@ -1,6 +1,6 @@
-package com.kolor.docker.api.entities
+package edu.cornell.cac.docker.api.entities
 
-import com.kolor.docker.api._
+import edu.cornell.cac.docker.api._
 import play.api.libs.json._
 
 class ImageId private[ImageId] (val id: String) extends DockerEntity {

@@ -1,10 +1,10 @@
-package com.kolor.docker.api
+package edu.cornell.cac.docker.api
 
 import play.api.libs.iteratee._
 import scala.concurrent.ExecutionContext.Implicits.global
 import play.api.libs.json._
-import com.kolor.docker.api.entities._
-import com.kolor.docker.api.json.Formats._
+import edu.cornell.cac.docker.api.entities._
+import edu.cornell.cac.docker.api.json.Formats._
 import org.slf4j.LoggerFactory
 import play.api.libs.iteratee.Iteratee
 import play.api.libs.iteratee.Input.{El, Empty, EOF}
@@ -34,7 +34,7 @@ object DockerEnumeratee {
 			} ><>
 			Enumeratee.map[JsObject]{json =>
 			  	log.debug(s"statusStreamEnumeratee simpleObject: ${json}")
-				com.kolor.docker.api.json.Formats.dockerStatusMessageFmt.reads(json)
+        edu.cornell.cac.docker.api.json.Formats.dockerStatusMessageFmt.reads(json)
 			} ><>
 			Enumeratee.collect[JsResult[DockerStatusMessage]] { 
 			  case JsSuccess(value, _) => value

@@ -1,4 +1,4 @@
-package com.kolor.docker
+package edu.cornell.cac.docker
 
 package object dsl {
 
