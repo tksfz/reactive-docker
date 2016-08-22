@@ -4,11 +4,11 @@ name := "reactive-docker"
 
 version := "0.1-SNAPSHOT"
 
-scalaVersion := "2.11.2"
+scalaVersion := "2.11.8"
 
 resolvers += Resolver.sonatypeRepo("releases")
 
-addCompilerPlugin("org.scalamacros" % "paradise" % "2.0.1" cross CrossVersion.full)
+addCompilerPlugin("org.scalamacros" %% "paradise" % "2.1.0" cross CrossVersion.full)
 
 publishMavenStyle := true
 
@@ -61,8 +61,8 @@ val logbackVer = "1.0.9"
 libraryDependencies ++= Seq(
             //"org.scalaz.stream" %% "scalaz-stream" % "0.3.1",
             "com.netaporter" %% "scala-uri" % "0.4.2",
-            "com.typesafe.play" %% "play-json" % "2.3.8",
-            "com.typesafe.play" %% "play-iteratees" % "2.3.8",
+            "com.typesafe.play" %% "play-json" % "2.5.5",
+            "com.typesafe.play" %% "play-iteratees" % "2.5.5",
             // "com.typesafe.akka" %% "akka-actor" % "2.4-SNAPSHOT",
             "net.databinder.dispatch" %% "dispatch-core" % "0.11.2",
             "org.specs2" %% "specs2" % "2.4.2" % "test",
