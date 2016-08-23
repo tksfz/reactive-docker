@@ -5,7 +5,9 @@ package object api {
 
   import edu.cornell.cac.docker.api.entities._
   import edu.cornell.cac.docker.api.json.Formats._
-  
+
+  type DockerMessage = Either[DockerErrorInfo,DockerStatusMessage]
+
   implicit val dockerJsonFormats = edu.cornell.cac.docker.api.json.Formats
   
   sealed trait DockerAttachable { }
