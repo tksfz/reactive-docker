@@ -28,7 +28,7 @@ class DockerApiSpec extends Specification with DefaultDockerAuth {
   
   implicit val docker = Docker()
   
-  private val log = LoggerFactory.getLogger(getClass())
+  private val log = LoggerFactory.getLogger(getClass)
   
   def await[T](f: Future[T]): T = {
     Await.result(f, defaultAwaitTimeout)
@@ -52,7 +52,7 @@ class DockerApiSpec extends Specification with DefaultDockerAuth {
     "retrieve docker events" in new DockerContext {
       try {        
         val (it, en) = Concurrent.joined[Array[Byte]]
-        val headOption = (en &> DockerEnumeratee.statusStream() |>>> Iteratee.head)
+        val headOption = en &> DockerEnumeratee.statusStream() |>>> Iteratee.head
 
         // this an infinite stream, so the connection won't terminate until the given iteratee is done
     	docker.dockerEventsStreamIteratee(it).map {i =>
@@ -61,7 +61,7 @@ class DockerApiSpec extends Specification with DefaultDockerAuth {
         }
         
         log.info("pulling busybox image")
-        (docker.imageCreate(RepositoryTag("busybox"))).map{u => 
+        docker.imageCreate(RepositoryTag("busybox")).map{ u =>
         	log.info("image has been created")
         	docker.imageRemove("busybox").map{_ =>
         		log.info(s"image has been removed")
@@ -118,7 +118,7 @@ class DockerApiSpec extends Specification with DefaultDockerAuth {
     	res must not be empty
     	res.size must be_>(0)
 
-    	res(0) must beLike {
+    	res.head must beLike {
         	case Right(msg) => msg.status must not be empty
         	case Left(err) => err.message must not be empty
     	}
@@ -134,7 +134,7 @@ class DockerApiSpec extends Specification with DefaultDockerAuth {
 
         res must not be empty
         res.size must be_>(0)
-        res(0) must beLike {
+        res.head must beLike {
           case Right(msg) => msg.status must not be empty
           case Left(err) => err.message must not be empty
         }
@@ -156,7 +156,7 @@ class DockerApiSpec extends Specification with DefaultDockerAuth {
       
       res must not be empty
       res.size must be_>(0)
-      res(0) must beLike {
+      res.head must beLike {
         case Right(msg) => msg.status must not be empty
         case Left(err) => err.code must not be empty
       }
@@ -195,7 +195,7 @@ class DockerApiSpec extends Specification with DefaultDockerAuth {
       	val os = new java.io.FileOutputStream(tmpFile)
     	await(docker.imageExport("busybox")(Iteratee.foreach(b => os.write(b))).flatMap(_.run))
     	os.close()
-    	log.info(s"saved exported image tarball to: ${tmpFile.getAbsolutePath()} Size=${tmpFile.length()}")
+    	log.info(s"saved exported image tarball to: ${tmpFile.getAbsolutePath} Size=${tmpFile.length()}")
     	tmpFile.length().toInt must beGreaterThan(1024)
     }
     
@@ -206,14 +206,14 @@ class DockerApiSpec extends Specification with DefaultDockerAuth {
     	await(docker.imageExport("busybox")(Iteratee.foreach(b => os.write(b))).flatMap(_.run))
     	os.close()
     	tmpFile.length().toInt must beGreaterThan(1024)
-    	log.info(s"importing image tarball from: ${tmpFile.getAbsolutePath()} Size=${tmpFile.length()}")      	
+    	log.info(s"importing image tarball from: ${tmpFile.getAbsolutePath} Size=${tmpFile.length()}")
       	val importRes = await(docker.imageImport(tmpFile))
       	importRes must be_==(true)
     }
     
     
     "list containers" in runningContainer {env:Container => 
-      val containers = await(docker.containers(true))
+      val containers = await(docker.containers(all = true))
       containers.size must be_>(0)
       val first = containers.head
       
@@ -226,8 +226,8 @@ class DockerApiSpec extends Specification with DefaultDockerAuth {
     
     "inspect a simple container" in container {env:Container => 
       val info = await(docker.containerInspect(env.containerId))
-      info.id.id must_!=("")
-      info.id.id must_==(env.containerId.id)
+      info.id.id must_!= ""
+      info.id.id must_== env.containerId.id
     }
     
     "inspect a complex container" in complexContainer {env:Container =>
@@ -251,7 +251,7 @@ class DockerApiSpec extends Specification with DefaultDockerAuth {
       	val os = new java.io.FileOutputStream(tmpFile)
     	await(docker.containerExportIteratee(env.containerId)(Iteratee.foreach(b => os.write(b))).flatMap(_.run))
     	os.close()    	
-    	log.info(s"exported container ${env.containerId} to tarball: ${tmpFile.getAbsolutePath()} Size=${tmpFile.length()}")
+    	log.info(s"exported container ${env.containerId} to tarball: ${tmpFile.getAbsolutePath} Size=${tmpFile.length()}")
     	tmpFile.length().toInt must beGreaterThan(1024)
     }
     
@@ -275,7 +275,7 @@ class DockerApiSpec extends Specification with DefaultDockerAuth {
 	      }
       } finally {
 	      await(docker.containerStop(id))
-	      await(docker.containerRemove(id, true))
+	      await(docker.containerRemove(id, withVolumes = true))
       }
     }
     
@@ -327,9 +327,9 @@ class DockerApiSpec extends Specification with DefaultDockerAuth {
       val run = docker.containerStart(containerId)
       
       val status = await(docker.containerWait(containerId){
-        case status => 
-          log.info(s"container terminated with Status=$status")
-          status
+        case s =>
+          log.info(s"container terminated with Status=$s")
+          s
       })
       docker.containerRemove(containerId)
       status must be_==(0)
@@ -342,7 +342,7 @@ class DockerApiSpec extends Specification with DefaultDockerAuth {
     
     "remove a container with its volumes" in complexContainer {env:Container =>
       val stop = await(docker.containerStop(env.containerId, 15))
-      val res = await(docker.containerRemove(env.containerId, true))
+      val res = await(docker.containerRemove(env.containerId, withVolumes = true))
       res must be_==(true)
     }
     
@@ -353,7 +353,7 @@ class DockerApiSpec extends Specification with DefaultDockerAuth {
       await(docker.containerCopyResourceIteratee(env.containerId, "/etc/hosts")(Iteratee.foreach(b => os.write(b))).flatMap(_.run))
       
       os.close()    	
-      log.info(s"copied /etc/hosts of container ${env.containerId} to: ${tmpFile.getAbsolutePath()} Size=${tmpFile.length()}")
+      log.info(s"copied /etc/hosts of container ${env.containerId} to: ${tmpFile.getAbsolutePath} Size=${tmpFile.length()}")
       tmpFile.length().toInt must beGreaterThan(1024)
     }
     

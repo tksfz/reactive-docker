@@ -29,7 +29,7 @@ class DockerQuickSpec extends Specification with DefaultDockerAuth {
 
   implicit val docker = Docker()
 
-  val log = LoggerFactory.getLogger(getClass())
+  val log = LoggerFactory.getLogger(getClass)
 
   def await[T](f: Future[T]): T = {
     Await.result(f, defaultAwaitTimeout)
@@ -83,7 +83,7 @@ class DockerQuickSpec extends Specification with DefaultDockerAuth {
       	res must not be empty
       	res.size must be_>(0)
   
-      	res(0) must beLike {
+      	res.head must beLike {
           	case Right(msg) => msg.status must not be empty
           	case Left(err) => err.message must not be empty
       	}
@@ -106,7 +106,7 @@ class DockerQuickSpec extends Specification with DefaultDockerAuth {
       res must not be empty
       res.size must be_>(0)
       
-      res(0) must beLike {
+      res.head must beLike {
         case Right(msg) => msg.status must not be empty
         case Left(err) => err.code must not be empty
       }
@@ -118,7 +118,7 @@ class DockerQuickSpec extends Specification with DefaultDockerAuth {
     "retrieve docker events" in new DockerContext {
       try {        
         val (it, en) = Concurrent.joined[Array[Byte]]
-        val headOption = (en &> DockerEnumeratee.statusStream() |>>> Iteratee.head)
+        val headOption = en &> DockerEnumeratee.statusStream() |>>> Iteratee.head
 
         // this an infinite stream, so the connection won't terminate until the given iteratee is done
     	docker.dockerEventsStreamIteratee(it).map {i =>
@@ -127,7 +127,7 @@ class DockerQuickSpec extends Specification with DefaultDockerAuth {
         }
         
         log.info("pulling busybox image")
-        (docker.imageCreate(RepositoryTag("busybox"))).map{u => 
+        docker.imageCreate(RepositoryTag("busybox")).map{ u =>
         	log.info("image has been created")
         	docker.imageRemove("busybox").map{_ =>
         		log.info(s"image has been removed")
@@ -157,14 +157,14 @@ class DockerQuickSpec extends Specification with DefaultDockerAuth {
   	  lazy val authInfo = dockerCredentials //DockerAuthCredentials("user", "pass", "me@host.com", "https://index.docker.io/v1/")
 
   	  val (it, en) = Concurrent.joined[Array[Byte]]
-      val maybeRes = (en &> DockerEnumeratee.statusStream() |>>> Iteratee.getChunks)
+      val maybeRes = en &> DockerEnumeratee.statusStream() |>>> Iteratee.getChunks
         
       await(docker.imagePush(env.imageName))
       
       val res = await(maybeRes)
       res must not be empty
       res.size must be_>(0)
-      res(0) must beLike {
+      res.head must beLike {
         case Right(msg) => msg.status must not be empty
         case Left(err) => err.code must not be empty
       }
@@ -178,7 +178,7 @@ class DockerQuickSpec extends Specification with DefaultDockerAuth {
 
       val res = await(it)
       os.close()    	
-      log.info(s"copied /etc/hosts of container ${env.containerId} to: ${tmpFile.getAbsolutePath()} Size=${tmpFile.length()}")
+      log.info(s"copied /etc/hosts of container ${env.containerId} to: ${tmpFile.getAbsolutePath} Size=${tmpFile.length()}")
       tmpFile.length().toInt must beGreaterThan(1024)
     }
   }
