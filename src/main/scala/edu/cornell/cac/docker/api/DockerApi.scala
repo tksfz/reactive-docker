@@ -28,24 +28,24 @@ sealed trait DockerApiHelper {
   
   def recoverContainerAwareRequest[A](it: Future[Iteratee[Array[Byte], A]])(implicit client: DockerClient, id: ContainerId) = {
     it.recoverWith{
-      case DockerResponseCode(404, err) => Future.failed(new NoSuchContainerException(id, client))
-      case DockerResponseCode(500, err) => Future.failed(new DockerInternalServerErrorException(client, err))
-      case t @ DockerResponseCode(code, err) => Future.failed(new DockerRequestException(s"Docker request failed (Code: $code): err", client, Some(t), None))
+      case DockerResponseCode(404, err) => Future.failed(NoSuchContainerException(id, client))
+      case DockerResponseCode(500, err) => Future.failed(DockerInternalServerErrorException(client, err))
+      case t @ DockerResponseCode(code, err) => Future.failed(DockerRequestException(s"Docker request failed (Code: $code): err", client, Some(t), None))
     }
   }
   
   def recoverImageAwareRequest[A](it: Future[Iteratee[Array[Byte], A]])(implicit client: DockerClient, image: String) = {
     it.recoverWith{
-      case DockerResponseCode(404, err) => Future.failed(new NoSuchImageException(image, client))
-      case DockerResponseCode(500, err) => Future.failed(new DockerInternalServerErrorException(client, err))
-      case t @ DockerResponseCode(code, err) => Future.failed(new DockerRequestException(s"Docker request failed (Code: $code): err", client, Some(t), None))
+      case DockerResponseCode(404, err) => Future.failed(NoSuchImageException(image, client))
+      case DockerResponseCode(500, err) => Future.failed(DockerInternalServerErrorException(client, err))
+      case t @ DockerResponseCode(code, err) => Future.failed(DockerRequestException(s"Docker request failed (Code: $code): err", client, Some(t), None))
     }
   }
   
   def recoverDockerAwareRequest[A](it: Future[Iteratee[Array[Byte], A]])(implicit client: DockerClient) = {
     it.recoverWith{
-      case DockerResponseCode(500, err) => Future.failed(new DockerInternalServerErrorException(client, err))
-      case t @ DockerResponseCode(code, err) => Future.failed(new DockerRequestException(s"Docker request failed (Code: $code): err", client, Some(t), None))
+      case DockerResponseCode(500, err) => Future.failed(DockerInternalServerErrorException(client, err))
+      case t @ DockerResponseCode(code, err) => Future.failed(DockerRequestException(s"Docker request failed (Code: $code): err", client, Some(t), None))
     }
   }
 }
@@ -56,7 +56,7 @@ sealed trait DockerApiHelper {
  */
 trait DockerApi extends DockerContainerApi with DockerImagesApi with DockerApiHelper {
   
-  private val log = LoggerFactory.getLogger(this.getClass());
+  private val log = LoggerFactory.getLogger(this.getClass)
 
     /*
 val params = Map("commit" -> "true")
@@ -75,11 +75,11 @@ val req = solr / "update" / "json" << a <<? params <:< headers
     }
     
     docker.dockerRequest(req).map{
-      case Right(resp) if resp.getStatusCode() == 200 => true
-      case Right(resp) if resp.getStatusCode() == 201 => true
-      case Right(resp) if resp.getStatusCode() == 500 => false // throw new DockerInternalServerErrorException(docker)
+      case Right(resp) if resp.getStatusCode == 200 => true
+      case Right(resp) if resp.getStatusCode == 201 => true
+      case Right(resp) if resp.getStatusCode == 500 => false // throw new DockerInternalServerErrorException(docker)
       case Right(resp) => false
-      case Left(t) => throw new DockerRequestException(s"docker auth request failed", docker, Some(t), Some(req))
+      case Left(t) => throw DockerRequestException(s"docker auth request failed", docker, Some(t), Some(req))
     }
   }
 
@@ -90,8 +90,8 @@ val req = solr / "update" / "json" << a <<? params <:< headers
     val req = url(Endpoints.dockerInfo.toString).GET
     docker.dockerJsonRequest[DockerInfo](req).map {
       case Right(v) => v
-      case Left(StatusCode(500)) => throw new DockerInternalServerErrorException(docker)
-      case Left(t) => throw new DockerRequestException(s"docker info request failed", docker, Some(t), Some(req))
+      case Left(StatusCode(500)) => throw DockerInternalServerErrorException(docker)
+      case Left(t) => throw DockerRequestException(s"docker info request failed", docker, Some(t), Some(req))
     }
   }
   
@@ -101,9 +101,9 @@ val req = solr / "update" / "json" << a <<? params <:< headers
   def dockerPing()(implicit docker: DockerClient): Future[Boolean] = {
 	  val req = url(Endpoints.dockerPing.toString).GET
 	  docker.httpRequest(req).map {
-	    case Right(str) if (str.toLowerCase().equalsIgnoreCase("ok")) => true
+	    case Right(str) if str.toLowerCase().equalsIgnoreCase("ok") => true
 	    case Right(str) => false
-	    case Left(t) => throw new DockerRequestException(s"docker ping request failed", docker, Some(t), Some(req))
+	    case Left(t) => throw DockerRequestException(s"docker ping request failed", docker, Some(t), Some(req))
 	  }
   }
 
@@ -114,9 +114,9 @@ val req = solr / "update" / "json" << a <<? params <:< headers
   def dockerVersion()(implicit docker: DockerClient, fmt: Format[DockerVersion]): Future[DockerVersion] = {
     val req = url(Endpoints.dockerVersion.toString).GET
     docker.dockerJsonRequest[DockerVersion](req).map {
-      case Left(StatusCode(500)) => throw new DockerInternalServerErrorException(docker)
+      case Left(StatusCode(500)) => throw DockerInternalServerErrorException(docker)
       case Right(version) => version
-      case Left(t) => throw new DockerRequestException(s"docker version request failed", docker, Some(t), Some(req))
+      case Left(t) => throw DockerRequestException(s"docker version request failed", docker, Some(t), Some(req))
     }
   }
   
@@ -125,7 +125,7 @@ val req = solr / "update" / "json" << a <<? params <:< headers
    * timestamp defaults to past 10 seconds
    */
   def dockerEvents(since: Option[DateTime] = None, until: Option[DateTime] = None)(implicit docker: DockerClient, fmt: Format[DockerStatusMessage], errorFmt: Format[DockerErrorInfo], progressFmt: Format[DockerProgressInfo]): Future[List[Either[DockerErrorInfo, DockerStatusMessage]]] = {
-    val req = url(Endpoints.dockerEvents(Some(since.map(_.getMillis() / 1000).getOrElse(DateTime.now().getMillis()/1000 - (100*10))), until.map(_.getMillis() / 1000)).toString).GET
+    val req = url(Endpoints.dockerEvents(Some(since.map(_.getMillis / 1000).getOrElse(DateTime.now().getMillis/1000 - (100*10))), until.map(_.getMillis / 1000)).toString).GET
     recoverDockerAwareRequest(docker.dockerRequestIteratee(req)(_ => DockerIteratee.statusStream)).flatMap(_.run)
   }
   
@@ -217,7 +217,7 @@ val req = solr / "update" / "json" << a <<? params <:< headers
     } catch {
       case t:Throwable => // ignore
     } finally {
-      os.close
+      os.close()
     }
    
     
@@ -229,15 +229,15 @@ val req = solr / "update" / "json" << a <<? params <:< headers
            val entry = new TarArchiveEntry(tempDockerfile, "Dockerfile")
            out.putArchiveEntry(entry)
            IOUtils.copy(new FileInputStream(tempDockerfile), out)
-           out.closeArchiveEntry
+           out.closeArchiveEntry()
       } finally {
            if (out != null) {
-              out.finish
-              out.close
+              out.finish()
+              out.close()
            }
       }
 
-      log.info(s"DockerTarFile: ${temp.getAbsolutePath()} size=${temp.length()}")
+      log.info(s"DockerTarFile: ${temp.getAbsolutePath} size=${temp.length()}")
       
       val req = auth match {
         	case DockerAnonymousAuth => url(Endpoints.dockerBuild(tag, verbose, nocache, forceRm).toString).POST <<< temp <:< Map("Content-Type" -> "application/x-tar")
@@ -266,7 +266,7 @@ val req = solr / "update" / "json" << a <<? params <:< headers
  */
 trait DockerContainerApi extends DockerApiHelper {
 
-  private val log = LoggerFactory.getLogger(this.getClass());
+  private val log = LoggerFactory.getLogger(this.getClass)
 
   /**
    * list containers
@@ -274,11 +274,11 @@ trait DockerContainerApi extends DockerApiHelper {
   def containers(all:Boolean = true, limit: Option[Int] = None, sinceId: Option[String] = None, beforeId: Option[String] = None, showSize: Boolean = true)(implicit docker: DockerClient, fmt: Format[Container]): Future[Seq[Container]] = {
     val req = url(Endpoints.containers(all, limit, sinceId, beforeId, showSize).toString).GET
     docker.dockerJsonRequest[Seq[Container]](req).map {
-      case Left(StatusCode(400)) => throw new DockerBadParameterException("list containers - bad parameter", docker, req)
-      case Left(StatusCode(500)) => throw new DockerInternalServerErrorException(docker)
-      case Left(StatusCode(302)) => throw new DockerRequestException(s"list containers failed (Code: 302)", docker, None, Some(req))
+      case Left(StatusCode(400)) => throw DockerBadParameterException("list containers - bad parameter", docker, req)
+      case Left(StatusCode(500)) => throw DockerInternalServerErrorException(docker)
+      case Left(StatusCode(302)) => throw DockerRequestException(s"list containers failed (Code: 302)", docker, None, Some(req))
       case Right(v) => v 
-      case Left(t) => throw new DockerRequestException(s"list containers request failed", docker, Some(t), Some(req))
+      case Left(t) => throw DockerRequestException(s"list containers request failed", docker, Some(t), Some(req))
     }
   }
   
@@ -290,23 +290,23 @@ trait DockerContainerApi extends DockerApiHelper {
     val cfg = config.copy(image = Some(image))
     val req = url(Endpoints.containerCreate(name).toString).POST << Json.prettyPrint(Json.toJson(cfg)) <:< Map("Content-Type" -> "application/json")
     docker.dockerRequest(req).map { 
-      case Right(resp) if resp.getStatusCode() == 404 => 
+      case Right(resp) if resp.getStatusCode == 404 =>
         val json = Json.parse(resp.getResponseBody()).asOpt[JsObject]
         val id = json.flatMap(j => (j \ "Id").asOpt[String]).map(ContainerId(_)).getOrElse(ContainerId.emptyId)
-        throw new NoSuchContainerException(id, docker)
-      case Right(resp) if resp.getStatusCode() == 406 => 
+        throw NoSuchContainerException(id, docker)
+      case Right(resp) if resp.getStatusCode == 406 =>
         val json = Json.parse(resp.getResponseBody()).asOpt[JsObject]
         val id = json.flatMap(j => (j \ "Id").asOpt[String]).map(ContainerId(_)).getOrElse(ContainerId.emptyId)
-        throw new ContainerNotRunningException(id, docker)
-      case Right(resp) if resp.getStatusCode() == 409 => throw new DockerConflictException(s"create container request failed: ${resp.getResponseBody()}", docker) 
-      case Right(resp) if resp.getStatusCode() == 500 => throw new DockerInternalServerErrorException(docker)
-      case Right(resp) if (Seq(200, 201).contains(resp.getStatusCode())) => 
+        throw ContainerNotRunningException(id, docker)
+      case Right(resp) if resp.getStatusCode == 409 => throw DockerConflictException(s"create container request failed: ${resp.getResponseBody()}", docker)
+      case Right(resp) if resp.getStatusCode == 500 => throw DockerInternalServerErrorException(docker)
+      case Right(resp) if Seq(200, 201).contains(resp.getStatusCode) =>
         val json = Json.parse(resp.getResponseBody()).asOpt[JsObject]
         val id = json.flatMap(j => (j \ "Id").asOpt[String]).map(ContainerId(_)).getOrElse(ContainerId.emptyId)
         val warnings: Seq[String] = json.flatMap(j => (j \ "Warnings").asOpt[Seq[String]]).getOrElse(Seq.empty)
         (id, warnings)
-      case Right(resp) => throw new DockerRequestException(s"create container request failed (response code ${resp.getStatusCode()})", docker, None, Some(req)) 
-      case Left(t) => throw new DockerRequestException(s"create container request failed", docker, Some(t), Some(req))
+      case Right(resp) => throw DockerRequestException(s"create container request failed (response code ${resp.getStatusCode})", docker, None, Some(req))
+      case Left(t) => throw DockerRequestException(s"create container request failed", docker, Some(t), Some(req))
     }
   }
   
@@ -317,9 +317,9 @@ trait DockerContainerApi extends DockerApiHelper {
     val req = url(Endpoints.containerInspect(id).toString).GET
     docker.dockerJsonRequest[ContainerInfo](req).map { 
       case Right(info) => info
-      case Left(StatusCode(404)) => throw new NoSuchContainerException(id, docker)
-      case Left(StatusCode(500)) => throw new DockerInternalServerErrorException(docker)
-      case Left(t) => throw new DockerRequestException(s"inspect container request failed", docker, Some(t), Some(req))
+      case Left(StatusCode(404)) => throw NoSuchContainerException(id, docker)
+      case Left(StatusCode(500)) => throw DockerInternalServerErrorException(docker)
+      case Left(t) => throw DockerRequestException(s"inspect container request failed", docker, Some(t), Some(req))
     }
   }
   
@@ -329,11 +329,11 @@ trait DockerContainerApi extends DockerApiHelper {
   def containerProcesses(id: ContainerId, psArgs: Option[String] = None)(implicit docker: DockerClient): Future[(Seq[String], Seq[Seq[String]])] = {
     val req = url(Endpoints.containerProcesses(id, psArgs).toString).GET
     docker.dockerRequest(req).map { 
-      case Right(resp) if resp.getStatusCode() == 404 => throw new NoSuchContainerException(id, docker)
-      case Right(resp) if resp.getStatusCode() == 500 =>
+      case Right(resp) if resp.getStatusCode == 404 => throw NoSuchContainerException(id, docker)
+      case Right(resp) if resp.getStatusCode == 500 =>
         log.error(s"ResponseError: ${resp.getResponseBody}")
-        throw new DockerInternalServerErrorException(docker)
-      case Right(resp) if resp.getStatusCode() == 200 => 
+        throw DockerInternalServerErrorException(docker)
+      case Right(resp) if resp.getStatusCode == 200 =>
         val json = Json.parse(resp.getResponseBody()).asOpt[JsObject]
         val columns: Option[Seq[String]] = json.flatMap(j => (j \ "Titles").asOpt[Seq[String]])
         val rows: Option[JsArray] = json.flatMap(j => (j \ "Processes").asOpt[JsArray])
@@ -343,7 +343,7 @@ trait DockerContainerApi extends DockerApiHelper {
         }.getOrElse(Seq.empty)
         
         (columns.getOrElse(Seq.empty), processes)
-      case Left(t) => throw new DockerRequestException(s"container processes request failed", docker, Some(t), Some(req))
+      case Left(t) => throw DockerRequestException(s"container processes request failed", docker, Some(t), Some(req))
     }
   }
   
@@ -353,10 +353,10 @@ trait DockerContainerApi extends DockerApiHelper {
   def containerChangelog(id: ContainerId)(implicit docker: DockerClient, fmt: Format[ContainerChangelogRecord]): Future[Seq[ContainerChangelogRecord]] = {
     val req = url(Endpoints.containerChangelog(id).toString).GET
     docker.dockerJsonRequest[Seq[ContainerChangelogRecord]](req).map { 
-      case Right(log) => log
-      case Left(StatusCode(404)) => throw new NoSuchContainerException(id, docker)
-      case Left(StatusCode(500)) => throw new DockerInternalServerErrorException(docker)
-      case Left(t) => throw new DockerRequestException(s"container changelog request failed", docker, Some(t), Some(req))
+      case Right(logmsg) => logmsg
+      case Left(StatusCode(404)) => throw NoSuchContainerException(id, docker)
+      case Left(StatusCode(500)) => throw DockerInternalServerErrorException(docker)
+      case Left(t) => throw DockerRequestException(s"container changelog request failed", docker, Some(t), Some(req))
     }
   }
   
@@ -401,12 +401,12 @@ trait DockerContainerApi extends DockerApiHelper {
     }
     
     docker.dockerRequest(req).map { 
-      case Right(resp) if (resp.getStatusCode() == 200) => true
-      case Right(resp) if (resp.getStatusCode() == 204) => true
-      case Right(resp) if (resp.getStatusCode() == 304) => true		// new with 1.13 => container status was not modified
-      case Right(resp) if (resp.getStatusCode() == 404) => throw new NoSuchContainerException(id, docker)
-      case Right(resp) => throw new DockerRequestException(s"unable to start container $id (StatusCode: ${resp.getStatusCode()}): ${resp.getStatusText()}", docker, None, Some(req))
-      case Left(t) => throw new DockerRequestException(s"unable to start container $id", docker, Some(t), Some(req))
+      case Right(resp) if resp.getStatusCode == 200 => true
+      case Right(resp) if resp.getStatusCode == 204 => true
+      case Right(resp) if resp.getStatusCode == 304 => true // new with 1.13 => container status was not modified
+      case Right(resp) if resp.getStatusCode == 404 => throw  NoSuchContainerException(id, docker)
+      case Right(resp) => throw DockerRequestException(s"unable to start container $id (StatusCode: ${resp.getStatusCode}): ${resp.getStatusText}", docker, None, Some(req))
+      case Left(t) => throw DockerRequestException(s"unable to start container $id", docker, Some(t), Some(req))
     }
   }
   
@@ -417,12 +417,12 @@ trait DockerContainerApi extends DockerApiHelper {
   def containerStop(id: ContainerId, timeoutToKill: Int = 60)(implicit docker: DockerClient): Future[Boolean] = {
     val req = url(Endpoints.containerStop(id, timeoutToKill).toString).POST 
     docker.dockerRequest(req).map { 
-      case Right(resp) if (resp.getStatusCode() == 200) => true
-      case Right(resp) if (resp.getStatusCode() == 204) => true
-      case Right(resp) if (resp.getStatusCode() == 304) => true		// new with 1.13 => container status was not modified
-      case Right(resp) if (resp.getStatusCode() == 404) => throw new NoSuchContainerException(id, docker)
-      case Right(resp) => throw new DockerRequestException(s"unable to stop container $id (Code ${resp.getStatusCode()}): ${resp.getResponseBody()}", docker, None, Some(req))
-      case Left(t) => throw new DockerRequestException(s"unable to stop container $id", docker, Some(t), Some(req))
+      case Right(resp) if resp.getStatusCode == 200 => true
+      case Right(resp) if resp.getStatusCode == 204 => true
+      case Right(resp) if resp.getStatusCode == 304 => true		// new with 1.13 => container status was not modified
+      case Right(resp) if resp.getStatusCode == 404 => throw NoSuchContainerException(id, docker)
+      case Right(resp) => throw DockerRequestException(s"unable to stop container $id (Code ${resp.getStatusCode}): ${resp.getResponseBody()}", docker, None, Some(req))
+      case Left(t) => throw DockerRequestException(s"unable to stop container $id", docker, Some(t), Some(req))
     }
   }
   
@@ -432,11 +432,11 @@ trait DockerContainerApi extends DockerApiHelper {
   def containerRestart(id: ContainerId, timeoutToKill: Int = 60)(implicit docker: DockerClient): Future[Boolean] = {
     val req = url(Endpoints.containerRestart(id, timeoutToKill).toString).POST 
     docker.dockerRequest(req).map { 
-      case Right(resp) if (resp.getStatusCode() == 200) => true
-      case Right(resp) if (resp.getStatusCode() == 204) => true
-      case Right(resp) if (resp.getStatusCode() == 404) => throw new NoSuchContainerException(id, docker)
-      case Right(resp) => throw new DockerRequestException(s"unable to restart container $id (StatusCode: ${resp.getStatusCode()}): ${resp.getStatusText()}", docker, None, Some(req))
-      case Left(t) => throw new DockerRequestException(s"unable to restart container $id", docker, Some(t), Some(req))
+      case Right(resp) if resp.getStatusCode == 200 => true
+      case Right(resp) if resp.getStatusCode == 204 => true
+      case Right(resp) if resp.getStatusCode == 404 => throw NoSuchContainerException(id, docker)
+      case Right(resp) => throw DockerRequestException(s"unable to restart container $id (StatusCode: ${resp.getStatusCode}): ${resp.getStatusText}", docker, None, Some(req))
+      case Left(t) => throw DockerRequestException(s"unable to restart container $id", docker, Some(t), Some(req))
     }
   }
   
@@ -446,11 +446,11 @@ trait DockerContainerApi extends DockerApiHelper {
   def containerKill(id: ContainerId)(implicit docker: DockerClient): Future[Boolean] = {
     val req = url(Endpoints.containerKill(id).toString).POST 
     docker.dockerRequest(req).map { 
-      case Right(resp) if (resp.getStatusCode() == 200) => true
-      case Right(resp) if (resp.getStatusCode() == 204) => true
-      case Right(resp) if (resp.getStatusCode() == 404) => throw new NoSuchContainerException(id, docker)
-      case Right(resp) => throw new DockerRequestException(s"unable to kill container $id (StatusCode: ${resp.getStatusCode()}): ${resp.getStatusText()}", docker, None, Some(req))
-      case Left(t) => throw new DockerRequestException(s"unable to kill container $id", docker, Some(t), Some(req))
+      case Right(resp) if resp.getStatusCode == 200 => true
+      case Right(resp) if resp.getStatusCode == 204 => true
+      case Right(resp) if resp.getStatusCode == 404 => throw NoSuchContainerException(id, docker)
+      case Right(resp) => throw DockerRequestException(s"unable to kill container $id (StatusCode: ${resp.getStatusCode}): ${resp.getStatusText}", docker, None, Some(req))
+      case Left(t) => throw DockerRequestException(s"unable to kill container $id", docker, Some(t), Some(req))
     }
   }
 
@@ -460,10 +460,10 @@ trait DockerContainerApi extends DockerApiHelper {
   def attachLog[T](id: ContainerId, stdout: Boolean = true, stderr: Boolean = false, withTimestamps: Boolean = false, tail: Option[Int] = None)(consumer: Iteratee[Array[Byte], T])(implicit docker: DockerClient): Future[Iteratee[Array[Byte], T]] = {
     val req = url(Endpoints.containerLogs(id, true, stdout, stderr, withTimestamps, tail).toString).GET
     docker.dockerRequestIteratee(req)(_ => consumer).recoverWith{
-      case DockerResponseCode(400, err) => throw new DockerBadParameterException(s"unable to attach to container logs stream of $id", docker, req)
-      case DockerResponseCode(404, err) => Future.failed(new NoSuchContainerException(id, docker))
-      case DockerResponseCode(500, err) => Future.failed(new DockerInternalServerErrorException(docker, err))
-      case t @ DockerResponseCode(code, err) => Future.failed(new DockerRequestException(s"Docker streaming attach to container logs of $id failed (Code: $code): err", docker, Some(t), None))
+      case DockerResponseCode(400, err) => throw DockerBadParameterException(s"unable to attach to container logs stream of $id", docker, req)
+      case DockerResponseCode(404, err) => Future.failed(NoSuchContainerException(id, docker))
+      case DockerResponseCode(500, err) => Future.failed(DockerInternalServerErrorException(docker, err))
+      case t @ DockerResponseCode(code, err) => Future.failed(DockerRequestException(s"Docker streaming attach to container logs of $id failed (Code: $code): err", docker, Some(t), None))
     }
   }
   
@@ -474,10 +474,10 @@ trait DockerContainerApi extends DockerApiHelper {
   def fetchLog[T](id: ContainerId, stdout: Boolean = true, stderr: Boolean = false, withTimestamps: Boolean = false, tail: Option[Int] = None)(consumer: Iteratee[Array[Byte], T] = Iteratee.ignore)(implicit docker: DockerClient): Future[Iteratee[Array[Byte], T]] = {
     val req = url(Endpoints.containerLogs(id, false, stdout, stderr, withTimestamps, tail).toString).GET
     docker.dockerRequestIteratee(req)(_ => consumer).recoverWith{
-      case DockerResponseCode(400, err) => throw new DockerBadParameterException(s"unable to fetch logs of container $id", docker, req)
-      case DockerResponseCode(404, err) => Future.failed(new NoSuchContainerException(id, docker))
-      case DockerResponseCode(500, err) => Future.failed(new DockerInternalServerErrorException(docker, err))
-      case t @ DockerResponseCode(code, err) => Future.failed(new DockerRequestException(s"Docker fetch logs of container $id failed (Code: $code): err", docker, Some(t), None))
+      case DockerResponseCode(400, err) => throw DockerBadParameterException(s"unable to fetch logs of container $id", docker, req)
+      case DockerResponseCode(404, err) => Future.failed(NoSuchContainerException(id, docker))
+      case DockerResponseCode(500, err) => Future.failed(DockerInternalServerErrorException(docker, err))
+      case t @ DockerResponseCode(code, err) => Future.failed(DockerRequestException(s"Docker fetch logs of container $id failed (Code: $code): err", docker, Some(t), None))
     }
   }
   
@@ -513,7 +513,7 @@ trait DockerContainerApi extends DockerApiHelper {
    * attach to a containers stdout, stderr, logs and stdin channel and stream their contents
    */
   def attachStream[T](id: ContainerId, stdout: Boolean = true, stderr: Boolean = false, logs: Boolean = false, stdin: Option[Enumerator[Array[Byte]]] = None)(consumer: Iteratee[Array[Byte], T])(implicit docker: DockerClient): Future[Iteratee[Array[Byte], T]] = {
-    
+
     logs match {
       case true => attachLog[T](id, stdout, stderr)(consumer) // attach to logs => proxy to attachLogs
       case _ => {
@@ -522,7 +522,7 @@ trait DockerContainerApi extends DockerApiHelper {
             // transform stdin enumerator into  an inputstream and attach to request
             val os = new PipedOutputStream()
             val is = new PipedInputStream(os)
-    
+
             (en |>>> Iteratee.foreach{b =>
               //println(s"STDIN:Container.$id> ${new String(b)}")
               os.write(b)
@@ -533,15 +533,15 @@ trait DockerContainerApi extends DockerApiHelper {
             url(Endpoints.containerAttach(id, true, true, stdout, stderr, logs).toString)
               .POST
               .subject.underlying(_.setBody(new InputStreamBodyGenerator(is)))
-    
+
           case _ => url(Endpoints.containerAttach(id, true, false, stdout, stderr, logs).toString).POST
         }
-    
+
         docker.dockerRequestIteratee(req)(_ => consumer).recoverWith{
-          case DockerResponseCode(400, err) => throw new DockerBadParameterException(s"unable to attach to container $id", docker, req)
-          case DockerResponseCode(404, err) => Future.failed(new NoSuchContainerException(id, docker))
-          case DockerResponseCode(500, err) => Future.failed(new DockerInternalServerErrorException(docker, err))
-          case t @ DockerResponseCode(code, err) => Future.failed(new DockerRequestException(s"Docker streaming attach to container $id failed (Code: $code): err", docker, Some(t), None))
+          case DockerResponseCode(400, err) => throw DockerBadParameterException(s"unable to attach to container $id", docker, req)
+          case DockerResponseCode(404, err) => Future.failed(NoSuchContainerException(id, docker))
+          case DockerResponseCode(500, err) => Future.failed(DockerInternalServerErrorException(docker, err))
+          case t @ DockerResponseCode(code, err) => Future.failed(DockerRequestException(s"Docker streaming attach to container $id failed (Code: $code): err", docker, Some(t), None))
         }
       }
     }
@@ -569,10 +569,10 @@ trait DockerContainerApi extends DockerApiHelper {
 
     val consumer = Iteratee.ignore[Array[Byte]]
     docker.dockerRequestIteratee(req)(_ => consumer).recoverWith{
-      case DockerResponseCode(400, err) => throw new DockerBadParameterException(s"unable to attach to container $id", docker, req)
-      case DockerResponseCode(404, err) => Future.failed(new NoSuchContainerException(id, docker))
-      case DockerResponseCode(500, err) => Future.failed(new DockerInternalServerErrorException(docker, err))
-      case t @ DockerResponseCode(code, err) => Future.failed(new DockerRequestException(s"Docker streaming attach to container $id failed (Code: $code): err", docker, Some(t), None))
+      case DockerResponseCode(400, err) => throw DockerBadParameterException(s"unable to attach to container $id", docker, req)
+      case DockerResponseCode(404, err) => Future.failed(NoSuchContainerException(id, docker))
+      case DockerResponseCode(500, err) => Future.failed(DockerInternalServerErrorException(docker, err))
+      case t @ DockerResponseCode(code, err) => Future.failed(DockerRequestException(s"Docker streaming attach to container $id failed (Code: $code): err", docker, Some(t), None))
     }.flatMap(_.run).map(_ => Unit)
   }
 
@@ -583,16 +583,15 @@ trait DockerContainerApi extends DockerApiHelper {
   def attach[T](id: ContainerId, stdout: Boolean = true, stderr: Boolean = false, logs: Boolean = false)(consumer: Iteratee[Array[Byte], T] = Iteratee.ignore)(implicit docker: DockerClient): Future[Iteratee[Array[Byte], T]] = {    
     logs match {
       case true => fetchLog[T](id, stdout, stderr)(consumer)  // attach to logs? => redirect to fetchLog endpoint
-      case _ => {
+      case _ =>
         val req = url(Endpoints.containerAttach(id, false, false, stdout, stderr, logs).toString).POST
     
         docker.dockerRequestIteratee(req)(_ => consumer).recoverWith{
-          case DockerResponseCode(400, err) => throw new DockerBadParameterException(s"unable to attach to container $id", docker, req)
-          case DockerResponseCode(404, err) => Future.failed(new NoSuchContainerException(id, docker))
-          case DockerResponseCode(500, err) => Future.failed(new DockerInternalServerErrorException(docker, err))
-          case t @ DockerResponseCode(code, err) => Future.failed(new DockerRequestException(s"Docker attach to container $id failed (Code: $code): err", docker, Some(t), None))
+          case DockerResponseCode(400, err) => throw DockerBadParameterException(s"unable to attach to container $id", docker, req)
+          case DockerResponseCode(404, err) => Future.failed(NoSuchContainerException(id, docker))
+          case DockerResponseCode(500, err) => Future.failed(DockerInternalServerErrorException(docker, err))
+          case t @ DockerResponseCode(code, err) => Future.failed(DockerRequestException(s"Docker attach to container $id failed (Code: $code): err", docker, Some(t), None))
         }
-      }
     }
     
     
@@ -604,9 +603,9 @@ trait DockerContainerApi extends DockerApiHelper {
   def containerWait[T](id: ContainerId)(action: Int => T)(implicit docker: DockerClient): Future[T] = {
     val req = url(Endpoints.containerWait(id).toString).POST
     docker.dockerRequest(req).map { 
-      case Right(resp) if resp.getStatusCode() == 404 => throw new NoSuchContainerException(id, docker)
-      case Right(resp) if resp.getStatusCode() == 500 => throw new DockerInternalServerErrorException(docker)
-      case Right(resp) if resp.getStatusCode() == 200 => 
+      case Right(resp) if resp.getStatusCode == 404 => throw NoSuchContainerException(id, docker)
+      case Right(resp) if resp.getStatusCode == 500 => throw DockerInternalServerErrorException(docker)
+      case Right(resp) if resp.getStatusCode == 200 =>
         val json = Json.parse(resp.getResponseBody()).asOpt[JsObject]
         val statusCode: Option[Int] = json.flatMap(j => (j \ "StatusCode").asOpt[Int])
         action(statusCode.getOrElse(-1))
@@ -619,11 +618,11 @@ trait DockerContainerApi extends DockerApiHelper {
   def containerRemove(id: ContainerId, withVolumes: Boolean = false, force: Boolean = false)(implicit docker: DockerClient): Future[Boolean] = {
     val req = url(Endpoints.containerRemove(id, withVolumes, force).toString).DELETE 
     docker.dockerRequest(req).map { 
-      case Right(resp) if (resp.getStatusCode() == 204) => true
-      case Right(resp) if (resp.getStatusCode() == 400) => throw new DockerBadParameterException(s"removing container $id failed", docker, req)
-      case Right(resp) if (resp.getStatusCode() == 404) => throw new NoSuchContainerException(id, docker)
-      case Right(resp) => throw new DockerRequestException(s"unable to remove container $id (Code ${resp.getStatusCode()}): ${resp.getResponseBody()}", docker, None, Some(req))
-      case Left(t) => throw new DockerRequestException(s"unable to remove container $id", docker, Some(t), Some(req))
+      case Right(resp) if resp.getStatusCode == 204 => true
+      case Right(resp) if resp.getStatusCode == 400 => throw DockerBadParameterException(s"removing container $id failed", docker, req)
+      case Right(resp) if resp.getStatusCode == 404 => throw NoSuchContainerException(id, docker)
+      case Right(resp) => throw DockerRequestException(s"unable to remove container $id (Code ${resp.getStatusCode}): ${resp.getResponseBody()}", docker, None, Some(req))
+      case Left(t) => throw DockerRequestException(s"unable to remove container $id", docker, Some(t), Some(req))
     }
   }
   
@@ -666,13 +665,13 @@ trait DockerContainerApi extends DockerApiHelper {
     val cfg = runConfig.map(j => Json.prettyPrint(Json.toJson(j)))
     val req = url(Endpoints.containerCommit(id, repoTag.repo, repoTag.tag, cfg, None, None, pause).toString).POST << cfg.getOrElse("{}")
     docker.dockerRequest(req).map { 
-      case Right(resp) if resp.getStatusCode() == 404 => throw new NoSuchContainerException(id, docker)
-      case Right(resp) if resp.getStatusCode() == 500 => throw new DockerInternalServerErrorException(docker)
-      case Right(resp) if (Seq(200, 201).contains(resp.getStatusCode())) => 
+      case Right(resp) if resp.getStatusCode == 404 => throw NoSuchContainerException(id, docker)
+      case Right(resp) if resp.getStatusCode == 500 => throw DockerInternalServerErrorException(docker)
+      case Right(resp) if Seq(200, 201).contains(resp.getStatusCode) =>
         val json = Json.parse(resp.getResponseBody()).asOpt[JsObject]
         val newId: ContainerId = json.flatMap(j => (j \ "Id").asOpt[String]).map(ContainerId(_)).getOrElse(ContainerId.emptyId)
         newId
-      case Left(t) => throw new DockerRequestException(s"commit container $id (tag: ${repoTag.toString}) failed", docker, Some(t), Some(req))
+      case Left(t) => throw DockerRequestException(s"commit container $id (tag: ${repoTag.toString}) failed", docker, Some(t), Some(req))
     }
   }
 
@@ -685,13 +684,13 @@ trait DockerContainerApi extends DockerApiHelper {
 
     val req = url(Endpoints.containerCommit(id, repoTag.repo, repoTag.tag, cfg, Some(commitMsg._1), commitMsg._2, pause).toString).POST << cfg.getOrElse("{}")
     docker.dockerRequest(req).map { 
-      case Right(resp) if resp.getStatusCode() == 404 => throw new NoSuchContainerException(id, docker)
-      case Right(resp) if resp.getStatusCode() == 500 => throw new DockerInternalServerErrorException(docker)
-      case Right(resp) if (Seq(200, 201).contains(resp.getStatusCode())) => 
+      case Right(resp) if resp.getStatusCode == 404 => throw NoSuchContainerException(id, docker)
+      case Right(resp) if resp.getStatusCode == 500 => throw DockerInternalServerErrorException(docker)
+      case Right(resp) if Seq(200, 201).contains(resp.getStatusCode) =>
         val json = Json.parse(resp.getResponseBody()).asOpt[JsObject]
         val newId: ContainerId = json.flatMap(j => (j \ "Id").asOpt[String]).map(ContainerId(_)).getOrElse(ContainerId.emptyId)
         newId
-      case Left(t) => throw new DockerRequestException(s"commit container $id failed", docker, Some(t), Some(req))
+      case Left(t) => throw DockerRequestException(s"commit container $id failed", docker, Some(t), Some(req))
     }
   }
   
@@ -703,7 +702,7 @@ trait DockerContainerApi extends DockerApiHelper {
  */
 trait DockerImagesApi extends DockerApiHelper {
   
-  private val log = LoggerFactory.getLogger(this.getClass());
+  private val log = LoggerFactory.getLogger(this.getClass)
 
   /**
    * list images
@@ -712,8 +711,8 @@ trait DockerImagesApi extends DockerApiHelper {
     val req = url(Endpoints.images(all).toString).GET
     docker.dockerJsonRequest[Seq[DockerImage]](req).map { 
       case Right(images) => images
-      case Left(StatusCode(500)) => throw new DockerInternalServerErrorException(docker)
-      case Left(t) => throw new DockerRequestException(s"list images request failed", docker, Some(t), Some(req))
+      case Left(StatusCode(500)) => throw DockerInternalServerErrorException(docker)
+      case Left(t) => throw DockerRequestException(s"list images request failed", docker, Some(t), Some(req))
     }
   }
 
@@ -768,9 +767,9 @@ trait DockerImagesApi extends DockerApiHelper {
     val req = url(Endpoints.imageInspect(image).toString).GET
     docker.dockerJsonRequest[DockerImageInfo](req).map { 
       case Right(info) => info
-      case Left(StatusCode(404)) => throw new NoSuchImageException(image, docker)
-      case Left(StatusCode(500)) => throw new DockerInternalServerErrorException(docker)
-      case Left(t) => throw new DockerRequestException(s"inspect image $image request failed", docker, Some(t), Some(req))
+      case Left(StatusCode(404)) => throw NoSuchImageException(image, docker)
+      case Left(StatusCode(500)) => throw DockerInternalServerErrorException(docker)
+      case Left(t) => throw DockerRequestException(s"inspect image $image request failed", docker, Some(t), Some(req))
     }
   }
 
@@ -782,9 +781,9 @@ trait DockerImagesApi extends DockerApiHelper {
     
     docker.dockerJsonRequest[Seq[DockerImageHistoryInfo]](req).map { 
       case Right(info) => info
-      case Left(StatusCode(404)) => throw new NoSuchImageException(image, docker)
-      case Left(StatusCode(500)) => throw new DockerInternalServerErrorException(docker)
-      case Left(t) => throw new DockerRequestException(s"inspect image $image request failed", docker, Some(t), Some(req))
+      case Left(StatusCode(404)) => throw NoSuchImageException(image, docker)
+      case Left(StatusCode(500)) => throw DockerInternalServerErrorException(docker)
+      case Left(t) => throw DockerRequestException(s"inspect image $image request failed", docker, Some(t), Some(req))
     }
   }
 
@@ -816,12 +815,12 @@ trait DockerImagesApi extends DockerApiHelper {
     val req = url(Endpoints.imageTag(image, repo, force).toString).POST
     
     docker.dockerRequest(req).map { 
-      case Right(resp) if (resp.getStatusCode() == 201) => true
-      case Right(resp) if (resp.getStatusCode() == 400) => throw new DockerBadParameterException(s"tagging image $image into $repo failed", docker, req)
-      case Right(resp) if (resp.getStatusCode() == 404) => throw new NoSuchImageException(image, docker)
-      case Right(resp) if (resp.getStatusCode() == 409) => throw new DockerConflictException(s"conflict while tagging $image into $repo: ${resp.getResponseBody()}", docker)
-      case Right(resp) if (resp.getStatusCode() == 500) => throw new DockerRequestException(s"tagging image $image into $repo request failed", docker, None, Some(req))
-      case Left(t) => throw new DockerRequestException(s"tagging image $image into $repo request failed", docker, Some(t), Some(req))
+      case Right(resp) if resp.getStatusCode == 201 => true
+      case Right(resp) if resp.getStatusCode == 400 => throw DockerBadParameterException(s"tagging image $image into $repo failed", docker, req)
+      case Right(resp) if resp.getStatusCode == 404 => throw NoSuchImageException(image, docker)
+      case Right(resp) if resp.getStatusCode == 409 => throw DockerConflictException(s"conflict while tagging $image into $repo: ${resp.getResponseBody()}", docker)
+      case Right(resp) if resp.getStatusCode == 500 => throw DockerRequestException(s"tagging image $image into $repo request failed", docker, None, Some(req))
+      case Left(t) => throw DockerRequestException(s"tagging image $image into $repo request failed", docker, Some(t), Some(req))
     }
   }
 
@@ -835,10 +834,10 @@ trait DockerImagesApi extends DockerApiHelper {
       case Right(output) => output.map{obj => 
         (obj.fields.head._1, obj.fields.head._2.asOpt[String].getOrElse(""))
       }
-      case Left(StatusCode(404)) => throw new NoSuchImageException(image, docker)
-      case Left(StatusCode(409)) => throw new DockerConflictException(s"conflict while removing image $image", docker)
-      case Left(StatusCode(500)) => throw new DockerRequestException(s"removing image $image request failed", docker, None, Some(req))
-      case Left(t) => throw new DockerRequestException(s"removing image $image request failed", docker, Some(t), Some(req))
+      case Left(StatusCode(404)) => throw NoSuchImageException(image, docker)
+      case Left(StatusCode(409)) => throw DockerConflictException(s"conflict while removing image $image", docker)
+      case Left(StatusCode(500)) => throw DockerRequestException(s"removing image $image request failed", docker, None, Some(req))
+      case Left(t) => throw DockerRequestException(s"removing image $image request failed", docker, Some(t), Some(req))
     }
   }
 
@@ -850,8 +849,8 @@ trait DockerImagesApi extends DockerApiHelper {
     
     docker.dockerJsonRequest[Seq[DockerImageSearchResult]](req).map { 
       case Right(results) => results
-      case Left(StatusCode(500)) => throw new DockerRequestException(s"searching image (term: $query) request failed", docker, None, Some(req))
-      case Left(t) => throw new DockerRequestException(s"searching image (term: $query) request failed", docker, Some(t), Some(req))
+      case Left(StatusCode(500)) => throw DockerRequestException(s"searching image (term: $query) request failed", docker, None, Some(req))
+      case Left(t) => throw DockerRequestException(s"searching image (term: $query) request failed", docker, Some(t), Some(req))
     }
   }
 
@@ -892,9 +891,9 @@ trait DockerImagesApi extends DockerApiHelper {
   def imageImport(tarFile: java.io.File)(implicit docker: DockerClient): Future[Boolean] = {
     val req = url(Endpoints.imagesLoad.toString).POST <<< tarFile <:< Map("Content-Type" -> "application/x-tar")
     docker.dockerRequest(req).map {
-      case Right(resp) if (resp.getStatusCode() == 200) => true
-      case Right(resp) if (resp.getStatusCode() == 500) => throw new DockerRequestException(s"importing image from $tarFile request failed", docker, None, Some(req))
-      case Left(t) => throw new DockerRequestException(s"importing image from $tarFile request failed", docker, Some(t), Some(req))
+      case Right(resp) if resp.getStatusCode == 200 => true
+      case Right(resp) if resp.getStatusCode == 500 => throw DockerRequestException(s"importing image from $tarFile request failed", docker, None, Some(req))
+      case Left(t) => throw DockerRequestException(s"importing image from $tarFile request failed", docker, Some(t), Some(req))
     }
   }
 }

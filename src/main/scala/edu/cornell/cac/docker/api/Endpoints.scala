@@ -10,7 +10,7 @@ object Endpoints {
   implicit protected def host(implicit docker: DockerClient) = docker.dockerHost
   implicit protected def port(implicit docker: DockerClient) = docker.dockerPort
   
-  def baseUri(implicit docker: DockerClient): Uri = (s"http://$host:$port")
+  def baseUri(implicit docker: DockerClient): Uri = s"http://$host:$port"
   
   def dockerInfo(implicit docker: DockerClient): Uri = {
     baseUri / "info"
@@ -34,11 +34,11 @@ object Endpoints {
   
   def dockerEvents(since: Option[Long] = None, until: Option[Long] = None)(implicit docker: DockerClient): Uri = {
     since match {
-      case Some(l) if (l > 0) => until match {
-        case Some(u) if (u > 0) => (baseUri / "events") ? ("since" -> l) & ("until" -> u)
+      case Some(l) if l > 0 => until match {
+        case Some(u) if u > 0 => (baseUri / "events") ? ("since" -> l) & ("until" -> u)
         case _ => (baseUri / "events") ? ("since" -> l)
       }
-      case _ => (baseUri / "events")
+      case _ => baseUri / "events"
     }
   }
   
@@ -111,8 +111,8 @@ object Endpoints {
   }
   
   def containerCommit(id: ContainerId, repo: String, tag: Option[String], runConfig: Option[String] = None, message: Option[String] = None, author: Option[String] = None, pause: Boolean = true)(implicit docker: DockerClient): Uri = {
-    val u = (baseUri / "commit")
-    (u) ? ("container" -> id.toString) & ("repo" -> repo) & ("tag" -> tag) & ("m" -> message) & ("author" -> author) & ("pause" -> pause) // & ("run" -> runConfig)
+    val u = baseUri / "commit"
+    u ? ("container" -> id.toString) & ("repo" -> repo) & ("tag" -> tag) & ("m" -> message) & ("author" -> author) & ("pause" -> pause) // & ("run" -> runConfig)
   }
   
   /**
@@ -127,15 +127,15 @@ object Endpoints {
   }
   
   def imageCreate(fromImage: String, fromSource: Option[String] = None, repo: Option[String], tag: Option[String], registry: Option[String])(implicit docker: DockerClient): Uri = {
-    val u = (baseUri / "images" / "create")
-    (u) ? ("fromImage" ->  fromImage) & ("fromSource" -> fromSource) & ("repo" -> repo) & ("tag" -> tag) & ("registry" -> registry)
+    val u = baseUri / "images" / "create"
+    u ? ("fromImage" ->  fromImage) & ("fromSource" -> fromSource) & ("repo" -> repo) & ("tag" -> tag) & ("registry" -> registry)
   }
   
   def imageInsert(name: String, imageTargetPath: String, source: java.net.URI)(implicit docker: DockerClient): Uri = {    
     docker match {
       case d:DockerClientV19 => 
-        val u = (baseUri / "images" / name / "insert")
-        (u) ? ("path" -> imageTargetPath) & ("url" -> source.toString)
+        val u = baseUri / "images" / name / "insert"
+        u ? ("path" -> imageTargetPath) & ("url" -> source.toString)
       case _ => throw new RuntimeException("imageInsert endpoint removed with api v1.12")
     }
   }
