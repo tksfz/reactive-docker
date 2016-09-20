@@ -114,7 +114,19 @@ object Endpoints {
     val u = baseUri / "commit"
     u ? ("container" -> id.toString) & ("repo" -> repo) & ("tag" -> tag) & ("m" -> message) & ("author" -> author) & ("pause" -> pause) // & ("run" -> runConfig)
   }
-  
+
+  def containerExecCreate
+  (id: ContainerId)
+  (implicit docker: DockerClient): Uri = {
+    baseUri / "containers" / id.toString / "exec"
+  }
+
+  def containerExecStart
+  (id: ExecId)
+  (implicit docker: DockerClient): Uri = {
+    baseUri / "exec" / id.toString / "start"
+  }
+
   /**
    * docker images endpoints
    */

@@ -13,7 +13,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 
 package object test {
   
-  private val log = LoggerFactory.getLogger(getClass())
+  private val log = LoggerFactory.getLogger(getClass)
   
   class DockerContext extends Scope {
 	  implicit lazy val docker: DockerClient = Docker("localhost", 2375)
@@ -37,7 +37,7 @@ package object test {
 	 */
 	def image:DockerEnv[Image] = new DockerEnv[Image] {
 	  val cmd = Seq("/bin/sh", "-c", "while true; do echo hello world; sleep 1; done")
-	  val env = new Image(cmd, RepositoryTag.create("busybox", Some("latest")))
+	  val env = Image(cmd, RepositoryTag.create("busybox", Some("latest")))
 	  
 	  // create a context
 	  def around[T : AsResult](t: =>T) = {
@@ -66,12 +66,12 @@ package object test {
 	    log.info(s"prepare container context - pulling busybox:latest ...")
 
 	    Await.result(docker.imageCreateIteratee(imageTag)(Iteratee.ignore).flatMap(_.run), timeout)
-	    implicit val fmt:Format[ContainerConfiguration] = com.kolor.docker.api.json.Formats.containerConfigFmt
+	    implicit val fmt:Format[ContainerConfiguration] = edu.cornell.cac.docker.api.json.Formats.containerConfigFmt
 	    log.info(s"prepare container context - creating container $containerName (cmd: ${cmd.mkString})")
 
 		val containerId = Await.result(docker.containerCreate("busybox", cfg, Some(containerName)), timeout)._1	
 		log.info(s"prepare container context - container ready with  $containerId")
-	    new Container(containerId, containerName, imageTag, cmd)
+	    Container(containerId, containerName, imageTag, cmd)
 	  }
 	  
 	  // create a context
@@ -107,12 +107,12 @@ package object test {
       log.info(s"prepare container context - pulling ubuntu:latest ...")
 
       Await.result(docker.imageCreateIteratee(imageTag)(Iteratee.ignore).flatMap(_.run), timeout)
-      implicit val fmt:Format[ContainerConfiguration] = com.kolor.docker.api.json.Formats.containerConfigFmt
+      implicit val fmt:Format[ContainerConfiguration] = edu.cornell.cac.docker.api.json.Formats.containerConfigFmt
       log.info(s"prepare container context - creating container $containerName (cmd: ${cmd.mkString})")
 
       val containerId = Await.result(docker.containerCreate("ubuntu", cfg, Some(containerName)), timeout)._1
       log.info(s"prepare container context - container ready with  $containerId")
-      new Container(containerId, containerName, imageTag, cmd)
+      Container(containerId, containerName, imageTag, cmd)
     }
 
     // create a context
@@ -148,17 +148,17 @@ package object test {
 	    log.info(s"prepare runningContainer context - pulling busybox:latest ...")
 
 	    Await.result(docker.imageCreateIteratee(imageTag)(Iteratee.ignore).flatMap(_.run), timeout)
-	    implicit val fmt:Format[ContainerConfiguration] = com.kolor.docker.api.json.Formats.containerConfigFmt
+	    implicit val fmt:Format[ContainerConfiguration] = edu.cornell.cac.docker.api.json.Formats.containerConfigFmt
 	    log.info(s"prepare runningContainer context - creating container $containerName (cmd: ${cmd.mkString})")
 
 		val containerId = Await.result(docker.containerCreate("busybox", cfg, Some(containerName)), timeout)._1
 		log.info(s"prepare runningContainer context - container ready with  $containerId, starting ...")
 
-		implicit val hostFmt: Format[ContainerHostConfiguration] = com.kolor.docker.api.json.Formats.containerHostConfigFmt
+		implicit val hostFmt: Format[ContainerHostConfiguration] = edu.cornell.cac.docker.api.json.Formats.containerHostConfigFmt
 		Await.result(docker.containerStart(containerId), timeout)
 		log.info(s"prepare runningContainer context - container $containerId running")
 
-	    new Container(containerId, containerName, imageTag, cmd)
+	    Container(containerId, containerName, imageTag, cmd)
 	  }
 	  
 	  // create a context
@@ -194,17 +194,17 @@ package object test {
 	    log.info(s"prepare runningComplexContainer context - pulling busybox:latest ...")
 
 	    Await.result(docker.imageCreateIteratee(imageTag)(Iteratee.ignore).flatMap(_.run), timeout)
-	    implicit val fmt:Format[ContainerConfiguration] = com.kolor.docker.api.json.Formats.containerConfigFmt
+	    implicit val fmt:Format[ContainerConfiguration] = edu.cornell.cac.docker.api.json.Formats.containerConfigFmt
 	    log.info(s"prepare runningComplexContainer context - creating container $containerName (cmd: ${cmd.mkString}) (cfg: ${cfg})")
 
 		val containerId = Await.result(docker.containerCreate("busybox", cfg, Some(containerName)), timeout)._1
 	    log.info(s"prepare runningComplexContainer context - creating container $containerName (cmd: ${cmd.mkString})")
 
-		implicit val hostFmt: Format[ContainerHostConfiguration] = com.kolor.docker.api.json.Formats.containerHostConfigFmt
+		implicit val hostFmt: Format[ContainerHostConfiguration] = edu.cornell.cac.docker.api.json.Formats.containerHostConfigFmt
 		Await.result(docker.containerStart(containerId), timeout)
 		log.info(s"prepare runningComplexContainer context - container $containerId running")
 
-	    new Container(containerId, containerName, imageTag, cmd)
+	    Container(containerId, containerName, imageTag, cmd)
 	  }
 	  
 	  // create a context

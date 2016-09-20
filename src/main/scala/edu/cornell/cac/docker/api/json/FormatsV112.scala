@@ -413,4 +413,10 @@ object FormatsV112 {
       (JsPath \ "SwapLimit").read[Int].map(int2Boolean(_)) and
       (JsPath \ "Sockets").read[Seq[String]].orElse(Reads.pure(Seq.empty[String])))(DockerInfo.apply _),
     Json.writes[DockerInfo])
+
+  implicit val execCreateFmt: Format[ExecCreate] = Json.format[ExecCreate]
+
+  implicit val execStartFmt: Format[ExecStart] = Json.format[ExecStart]
+
+
 }

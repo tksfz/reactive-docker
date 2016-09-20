@@ -7,18 +7,22 @@ import org.joda.time.DateTime
 import play.api.libs.iteratee._
 import org.slf4j.LoggerFactory
 import java.io._
+
 import scala.concurrent.Future
 import com.ning.http.client.generators.InputStreamBodyGenerator
 import play.api.libs.json.JsArray
+
 import scala.Some
 import dispatch.StatusCode
 import play.api.libs.json.JsObject
 import edu.cornell.cac.docker.api.entities._
 import org.apache.commons.compress.archivers.tar.TarArchiveOutputStream
 import java.util.zip.GZIPOutputStream
+
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry
 import org.apache.commons.compress.utils.IOUtils
 import edu.cornell.cac.docker.dsl.Dockerfile
+import sun.reflect.generics.reflectiveObjects.NotImplementedException
 
 /**
  * helper trait
@@ -455,7 +459,83 @@ trait DockerContainerApi extends DockerApiHelper {
   }
 
   /**
-   * attach (stream) to container`s stdin/stdout logs
+    * Create an execution task for use by docker exec;
+    * execute using containerExecStart
+    */
+  def containerExecCreate
+  (id: ContainerId, cmd: Seq[String], config: Option[ExecCreate] = None)
+  (implicit docker: DockerClient, fmt: Format[ExecCreate]): Future[(ExecId, Seq[String])] = {
+    val req = config match {
+      case Some(cfg) =>
+        assert(cfg.Cmd == cmd)
+        url(Endpoints.containerExecCreate(id).toString).POST <<
+          Json.prettyPrint(Json.toJson(cfg)) <:<
+          Map("Content-Type" -> "application/json")
+      case _ =>
+        url(Endpoints.containerExecCreate(id).toString).POST <<
+        Json.prettyPrint(Json.toJson(ExecCreate(cmd))) <:<
+        Map("Content-Type" -> "application/json")
+    }
+    docker.dockerRequest(req).map {
+      case Right(resp) if Seq(200, 201).contains(resp.getStatusCode) =>
+        val json = Json.parse(resp.getResponseBody()).asOpt[JsObject]
+        val id = json.flatMap(j => (j \ "Id").asOpt[String]).map(ExecId(_))
+          .getOrElse(ExecId.emptyId)
+        val warnings: Seq[String] = json.flatMap(j => (j \ "Warnings")
+          .asOpt[Seq[String]]).getOrElse(Seq.empty)
+        (id, warnings)
+      case Right(resp) if resp.getStatusCode == 404 => throw NoSuchContainerException(id, docker)
+      case Right(resp) if resp.getStatusCode == 409 => throw ContainerIsPaused(id, docker)
+      case Right(resp) => throw DockerRequestException(
+        s"unable to exec command $cmd on container $id (StatusCode: ${resp.getStatusCode}): ${resp.getStatusText}",
+        docker, None, Some(req)
+      )
+      case Left(t) => throw DockerRequestException(
+        s"unable to exec command $cmd on container $id",
+        docker, Some(t), Some(req)
+      )
+    }
+  }
+
+
+  /**
+    * start a previously defined execution task
+    */
+  def containerExecStart
+  (id: ExecId, config: Option[ExecStart] = None)
+  (implicit docker: DockerClient, fmt: Format[ExecStart]): Future[Boolean] = {
+    val req = config match {
+      case Some(cfg) => url(Endpoints.containerExecStart(id).toString).POST <<
+        Json.prettyPrint(Json.toJson(cfg)) <:<
+        Map("Content-Type" -> "application/json")
+      case _ => url(Endpoints.containerExecStart(id).toString).POST <<
+        Json.prettyPrint(Json.toJson(ExecStart())) <:<
+        Map("Content-Type" -> "application/json")
+    }
+    docker.dockerRequest(req).map {
+      case Right(resp) if resp.getStatusCode == 200 => true
+      case Right(resp) if resp.getStatusCode == 404 => throw NoSuchExecInstanceException(id, docker)
+      case Right(resp) if resp.getStatusCode == 409 => throw new NotImplementedException()
+      //TODO: above should be ContainerIsPaused(id, docker), but first need to implement Exec Inspect
+      case Right(resp) => throw DockerRequestException(s"unable to start exec $id (StatusCode: ${resp.getStatusCode}): ${resp.getStatusText}", docker, None, Some(req))
+      case Left(t) => throw DockerRequestException(s"unable to start exec $id", docker, Some(t), Some(req))
+    }
+  }
+
+  /**
+    * convenience method that combines containerExecCreate and containerExecStart
+    */
+  def containerExec(
+    id: ContainerId, cmd: Seq[String],
+    configCreate: Option[ExecCreate] = None, configStart: Option[ExecStart] = None
+  )(
+    implicit docker: DockerClient, fmt1: Format[ExecCreate], fmt2: Format[ExecStart]
+  ): Future[Boolean] = containerExecCreate(id, cmd, configCreate).flatMap{
+    case(execId, messages) => containerExecStart(execId, configStart)
+  }
+
+  /**
+   * attach (stream) to container's stdin/stdout logs
    */
   def attachLog[T](id: ContainerId, stdout: Boolean = true, stderr: Boolean = false, withTimestamps: Boolean = false, tail: Option[Int] = None)(consumer: Iteratee[Array[Byte], T])(implicit docker: DockerClient): Future[Iteratee[Array[Byte], T]] = {
     val req = url(Endpoints.containerLogs(id, true, stdout, stderr, withTimestamps, tail).toString).GET

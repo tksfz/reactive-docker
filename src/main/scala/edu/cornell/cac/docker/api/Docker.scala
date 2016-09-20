@@ -22,7 +22,7 @@ sealed case class DockerResponseHeaders(responseStatus: Int, responseText: Strin
 
 
 sealed trait DockerClient extends DockerApi {  
-  private val log = LoggerFactory.getLogger(this.getClass());
+  private val log = LoggerFactory.getLogger(this.getClass)
   
   implicit def docker:DockerClient = this
     
