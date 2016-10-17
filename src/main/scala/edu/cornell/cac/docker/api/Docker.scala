@@ -82,7 +82,7 @@ sealed trait DockerClient extends DockerApi {
   }
   
   def dockerRequestIteratee[A](req: dispatch.Req)(consumer: DockerResponseHeaders => Iteratee[Array[Byte], A] = nullConsumer(_))(implicit ec: ExecutionContext): Future[Iteratee[Array[Byte], A]] = {
-      log.debug(s"dockerRequestIteratee: ${req}")
+      log.debug(s"dockerRequestIteratee: $req")
 	  val iterateeP = Promise[Iteratee[Array[Byte], A]]()
       var iteratee: Iteratee[Array[Byte], A] = null
       var statusCode = 0
@@ -95,18 +95,18 @@ sealed trait DockerClient extends DockerApi {
     	  import scala.collection.JavaConverters._
 
     	  private def headersToMap(headers: FluentCaseInsensitiveStringsMap): Map[String,Seq[String]] = {
-		    val res = scala.collection.JavaConverters.mapAsScalaMapConverter(headers).asScala.map(e => (e._1 -> e._2.asScala.toSeq)).toMap
+		    val res = scala.collection.JavaConverters.mapAsScalaMapConverter(headers).asScala.map(e => e._1 -> e._2.asScala.toSeq).toMap
 		    TreeMap(res.toSeq: _*)(Ordering.String) //(CaseInsensitiveOrdered)
 		  }
     	      	  
 	      override def onStatusReceived(status: HttpResponseStatus) = {
-	        statusCode = status.getStatusCode()
-	        statusText = status.getStatusText()
+	        statusCode = status.getStatusCode
+	        statusText = status.getStatusText
 	        
 	        log.debug(s"${req.url} connected - StatusCode: $statusCode")
 	        
 	        if (statusCode > 300) {
-	          iterateeP.failure(new DockerResponseCode(statusCode, statusText))
+	          iterateeP.failure(DockerResponseCode(statusCode, statusText))
 	          doneOrError = true
 	          STATE.ABORT
 	        } else {
@@ -116,7 +116,7 @@ sealed trait DockerClient extends DockerApi {
 	      }
 
 	      override def onHeadersReceived(h: HttpResponseHeaders) = {
-	        val headers = h.getHeaders()
+	        val headers = h.getHeaders
 	        iteratee = consumer(DockerResponseHeaders(statusCode, statusText, headersToMap(headers)))
 	        STATE.CONTINUE
 	      }
@@ -133,20 +133,18 @@ sealed trait DockerClient extends DockerApi {
 	              it
 	            }
 	
-	            case Step.Cont(k) => {
-	              //log.info(s"${req.url} consumer receiving: ${new String(bodyPart.getBodyPartBytes())}")
-	              //log.info(s"${req.url} consumer receiving: ${bodyPart.getBodyPartBytes().map("%02x".format(_)).mkString(" ")}")
-	              k(Input.El(bodyPart.getBodyPartBytes()))
-	            }
-	            
-	            case Step.Error(e, input) => {
-	              doneOrError = true
-	              log.debug(s"${req.url} consumer received error")
-	              val it = Error(e, input)
-	              iterateeP.success(it)
-	              it
-	            }
-	          }
+	            case Step.Cont(k) =>
+                //log.info(s"${req.url} consumer receiving: ${new String(bodyPart.getBodyPartBytes())}")
+                //log.info(s"${req.url} consumer receiving: ${bodyPart.getBodyPartBytes().map("%02x".format(_)).mkString(" ")}")
+                k(Input.El(bodyPart.getBodyPartBytes))
+
+              case Step.Error(e, input) =>
+                doneOrError = true
+                log.debug(s"${req.url} consumer received error")
+                val it = Error(e, input)
+                iterateeP.success(it)
+                it
+            }
 	          
 	          STATE.CONTINUE
 	        } else {
@@ -168,7 +166,7 @@ sealed trait DockerClient extends DockerApi {
     	  }
     }
        
-    log.debug(s"connecting to: ${req.url}")
+    log.info(s"connecting to: ${req.url}")
     val futureResponse = Http(req > handler)
     iterateeP.future
   }
