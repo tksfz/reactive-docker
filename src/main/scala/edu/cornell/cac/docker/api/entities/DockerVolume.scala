@@ -18,21 +18,24 @@ sealed case class BindMountVolume(containerPath: String, hostPath: String, `type
 		
 object DockerVolume {
   
-	  private val pattern = """^([^:]+):(/[^:]+):(ro|rw)$""".r
+  private val pattern = """^([^:]+):(/[^:]+):(ro|rw)$""".r
 
-	  def apply(path: String, hostPath: String): DockerVolume = ContainerVolume(path)
+  def apply(path: String): DockerVolume = ContainerVolume(path)
 
-	  def unapply(v: DockerVolume): Option[(String, String)] = {
-	    v match {
-	      case bind: BindMountVolume => Some((bind.containerPath, bind.hostPath))
-	      case vol: ContainerVolume => Some((vol.containerPath, ""))
-	      case _ => None
-	    }
-	  }
-	  
-	  def fromString(s: String): Option[BindMountVolume] = s match {
-	    case pattern(containerPath, hostPath, rwType) => Some(BindMountVolume(containerPath, hostPath, rwType))
-	    case _ => None
-	  }
-	  
+  def apply(path: String, hostPath: String): DockerVolume =
+    BindMountVolume(path, hostPath, "rw")
+
+  def unapply(v: DockerVolume): Option[(String, String)] = {
+    v match {
+      case bind: BindMountVolume => Some((bind.containerPath, bind.hostPath))
+      case vol: ContainerVolume => Some((vol.containerPath, ""))
+      case _ => None
+    }
+  }
+
+  def fromString(s: String): Option[BindMountVolume] = s match {
+    case pattern(containerPath, hostPath, rwType) => Some(BindMountVolume(containerPath, hostPath, rwType))
+    case _ => None
+  }
+
 }
