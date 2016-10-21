@@ -12,8 +12,9 @@ sealed case class ContainerVolume(containerPath: String, hostPath: String = "") 
   override def toString = s"$containerPath"
 }
 
-sealed case class BindMountVolume(containerPath: String, hostPath: String, `type`: String = "ro") extends DockerVolume{
-  override def toString = s"$containerPath:$hostPath:${`type`}"
+sealed case class BindMountVolume(containerPath: String, hostPath: String, `type`: String) extends DockerVolume{
+  override def toString = s"$containerPath:$hostPath" +
+    (if (`type`.isEmpty) "" else s":${`type`}")
 }
 		
 object DockerVolume {
@@ -23,7 +24,7 @@ object DockerVolume {
   def apply(path: String): DockerVolume = ContainerVolume(path)
 
   def apply(path: String, hostPath: String): DockerVolume =
-    BindMountVolume(path, hostPath, "rw")
+    BindMountVolume(path, hostPath, "")
 
   def unapply(v: DockerVolume): Option[(String, String)] = {
     v match {

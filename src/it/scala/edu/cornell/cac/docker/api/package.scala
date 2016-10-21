@@ -11,7 +11,7 @@ import org.slf4j.LoggerFactory
 import play.api.libs.iteratee.Iteratee
 import scala.concurrent.ExecutionContext.Implicits.global
 
-package object test {
+package object api {
   
   private val log = LoggerFactory.getLogger(getClass)
   

@@ -1,11 +1,12 @@
+package edu.cornell.cac.docker.api
 
-package test
-
+import api.DockerContext
 import org.specs2.mutable.Specification
 import org.specs2.specification.AllExpectations
 import edu.cornell.cac.docker.api._
 import org.specs2.specification.Scope
 import org.specs2.specification.Before
+
 import scala.concurrent.duration.DurationConversions._
 import scala.concurrent.duration._
 import scala.concurrent._
@@ -14,6 +15,7 @@ import org.joda.time.DateTime
 import org.specs2.execute._
 import org.specs2.specification._
 import org.specs2.matcher.FutureMatchers.await
+
 import scala.concurrent.ExecutionContext.Implicits.global
 import play.api.libs.iteratee._
 import org.slf4j.LoggerFactory

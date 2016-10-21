@@ -1,5 +1,4 @@
-
-package test
+package edu.cornell.cac.docker.api
 
 import edu.cornell.cac.docker.api._
 import edu.cornell.cac.docker.api.entities._

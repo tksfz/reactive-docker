@@ -1,5 +1,4 @@
-
-package test
+package edu.cornell.cac.docker.api
 
 import org.specs2.mutable.Specification
 import edu.cornell.cac.docker.api._
