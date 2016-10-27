@@ -261,7 +261,7 @@ class DockerApiSpec extends Specification with DefaultDockerAuth {
       val name = "reactive-docker-testContainer"
       val hostName = "test.host.com"
         
-      val cfg = ContainerConfiguration(cmd = Some(Seq("date")), hostname = Some(hostName))
+      val cfg = ContainerConfiguration(Cmd = Some(Seq("date")), Hostname = Some(hostName))
       val id = await(docker.containerCreate(env.imageName, cfg, Some(name)))._1
 	      
       try {
@@ -272,7 +272,7 @@ class DockerApiSpec extends Specification with DefaultDockerAuth {
 	        case Some(s) => s must be_==(name)
 	      }
 	      
-	      info.config.hostname must beLike {
+	      info.config.Hostname must beLike {
 	        case Some(s) => s must be_==(hostName)
 	      }
       } finally {
@@ -360,7 +360,7 @@ class DockerApiSpec extends Specification with DefaultDockerAuth {
     }
     
     "commit a container" in runningContainer {env:Container =>
-      val cfg = ContainerConfiguration(cmd = Some(Seq("echo")))
+      val cfg = ContainerConfiguration(Cmd = Some(Seq("echo")))
       val info = await(docker.containerInspect(env.containerId))
       
       info.state.running must be_==(true)
@@ -370,7 +370,7 @@ class DockerApiSpec extends Specification with DefaultDockerAuth {
     }
     
     "commit a container with message and author" in runningContainer {env:Container =>
-      val cfg = ContainerConfiguration(cmd = Some(Seq("echo")))
+      val cfg = ContainerConfiguration(Cmd = Some(Seq("echo")))
       val id = await(docker.containerCommitWithMessage(env.containerId, RepositoryTag.create("dockerspec", Some("commitmessagetest")), ("some commit message", Some("someAuthor")), Some(cfg)))
       id.id must not be empty
     }

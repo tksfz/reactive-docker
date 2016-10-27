@@ -101,6 +101,13 @@ object Formats {
     }
   }
 
+
+  val hostConfigWrite: Writes[HostConfig] = new Writes[HostConfig] {
+    def writes(hConfig: HostConfig): JsValue = Json.obj("HostConfig" ->
+      bindMountHostConfigWrite.writes(hConfig.binds.getOrElse(Seq()))
+    )
+  }
+
   val bindMountHostConfigWrite: Writes[Seq[DockerVolume]] = new Writes[Seq[DockerVolume]] {
     def writes(seq: Seq[DockerVolume]): JsValue = Json.arr(seq.map(_.toString))
   }
@@ -266,6 +273,15 @@ object Formats {
       (__ \ "Email").write[String] and
       (__ \ "ServerAddress").write[String])(unlift(DockerAuth.unapply)))
 
+  implicit val hostConfigFmt: Format[HostConfig] = Format(
+    (__ \ "Binds").readNullable[Seq[String]].map { opt =>
+      HostConfig(opt.map(_.map { el =>
+        DockerVolume.fromString(el)
+      }.filter(_.isDefined).map(_.get)))
+    },
+    hostConfigWrite
+  )
+
   implicit val containerHostConfigFmt = Format(
     (
       (__ \ "Privileged").read[Boolean] and
@@ -287,7 +303,7 @@ object Formats {
       } and
       (__ \ "Links").readNullable[Seq[String]] and 
       Reads.pure(Seq.empty[String]) and 
-      Reads.pure(Seq.empty[String]))(ContainerHostConfiguration.apply _),
+      Reads.pure(Seq.empty[String]))(ContainerHostConfigInfo.apply _),
     (
       (__ \ "Privileged").write[Boolean] and
       (__ \ "PublishAllPorts").write[Boolean] and
@@ -299,60 +315,10 @@ object Formats {
       (__ \ "PortBindings").writeNullable[Map[String, DockerPortBinding]](hostConfigPortBindingWrite) and
       (__ \ "Links").writeNullable[Seq[String]] and
       (__ \ "CapAdd").write[Seq[String]] and
-      (__ \ "CapDrop").write[Seq[String]])(unlift(ContainerHostConfiguration.unapply)))
+      (__ \ "CapDrop").write[Seq[String]])(unlift(ContainerHostConfigInfo.unapply)))
 
-  implicit val containerConfigFmt = Format(
-    (
-      (__ \ "Image").readNullable[String] and
-      (__ \ "Cmd").readNullable[Seq[String]] and
-      (__ \ "Hostname").readNullable[String] and
-      (__ \ "User").readNullable[String] and
-      (__ \ "Memory").readNullable[Long] and
-      (__ \ "MemorySwap").readNullable[Long] and
-      (__ \ "AttachStdin").readNullable[Boolean] and
-      (__ \ "AttachStdout").readNullable[Boolean] and
-      (__ \ "AttachStderr").readNullable[Boolean] and
-      //(__ \ "PortSpecs").readNullable[Seq[String]] and
-      (__ \ "Tty").readNullable[Boolean] and
-      (__ \ "OpenStdin").readNullable[Boolean] and
-      (__ \ "StdinOnce").readNullable[Boolean] and
-      (__ \ "Env").readNullable[Seq[String]] and
-      (__ \ "Dns").readNullable[String] and
-      (__ \ "Volumes").readNullable[Map[String, DockerVolume]] and
-      (__ \ "VolumesFrom").readNullable[ContainerId].orElse(Reads.pure(None)) and
-      (__ \ "WorkingDir").readNullable[String] and
-      (__ \ "ExposedPorts").readNullable[Map[String, JsObject]].map { opt =>
-        val regex = """^(\d+)/(tcp|udp)$""".r
-        opt.map(_.flatMap {
-          case (regex(localPort, pType), cfg) => Map(s"$localPort/$pType" -> DockerPortBinding(localPort.toInt, (cfg \ ("HostIp")).asOpt[Int], Some(pType), (cfg \ ("HostPort")).asOpt[String]))
-        })
-      } and
-      (__ \ "Entrypoint").readNullable[Seq[String]] and
-      (__ \ "NetworkDisabled").readNullable[Boolean] and
-      (__ \ "OnBuild").readNullable[Seq[String]])(ContainerConfiguration.apply _),
-    (
-      (__ \ "Image").writeNullable[String] and
-      (__ \ "Cmd").writeNullable[Seq[String]] and
-      (__ \ "Hostname").writeNullable[String] and
-      (__ \ "User").writeNullable[String] and
-      (__ \ "Memory").writeNullable[Long] and
-      (__ \ "MemorySwap").writeNullable[Long] and
-      (__ \ "AttachStdin").writeNullable[Boolean] and
-      (__ \ "AttachStdout").writeNullable[Boolean] and
-      (__ \ "AttachStderr").writeNullable[Boolean] and
-      //(__ \ "PortSpecs").writeNullable[Seq[String]] and
-      (__ \ "Tty").writeNullable[Boolean] and
-      (__ \ "OpenStdin").writeNullable[Boolean] and
-      (__ \ "StdinOnce").writeNullable[Boolean] and
-      (__ \ "Env").writeNullable[Seq[String]] and
-      (__ \ "Dns").writeNullable[String] and
-      (__ \ "Volumes").writeNullable[Map[String, DockerVolume]] and
-      (__ \ "VolumesFrom").writeNullable[ContainerId] and
-      (__ \ "WorkingDir").writeNullable[String] and
-      (__ \ "ExposedPorts").writeNullable[Map[String, DockerPortBinding]](containerConfigPortBindingWrite) and
-      (__ \ "Entrypoint").writeNullable[Seq[String]] and
-      (__ \ "NetworkDisabled").writeNullable[Boolean] and
-      (__ \ "OnBuild").writeNullable[Seq[String]])(unlift(ContainerConfiguration.unapply)))
+  implicit val containerConfigFmt: Format[ContainerConfiguration] =
+    Json.format[ContainerConfiguration]
 
   implicit val containerInfoFmt = Format(
     (
@@ -361,7 +327,7 @@ object Formats {
       (__ \ "Config").read[ContainerConfiguration] and
       (__ \ "State").read[ContainerState] and
       (__ \ "NetworkSettings").read[ContainerNetworkConfiguration] and
-      (__ \ "HostConfig").read[ContainerHostConfiguration] and
+      (__ \ "HostConfig").read[ContainerHostConfigInfo] and
       (__ \ "Created").read[String].map(_.isoDateTime) and
       (__ \ "Name").readNullable[String].map(o => o.map(_.stripPrefix("/"))) and
       (__ \ "Path").readNullable[String] and
@@ -378,7 +344,7 @@ object Formats {
       (__ \ "Config").write[ContainerConfiguration] and
       (__ \ "State").write[ContainerState] and
       (__ \ "NetworkSettings").write[ContainerNetworkConfiguration] and
-      (__ \ "HostConfig").write[ContainerHostConfiguration] and
+      (__ \ "HostConfig").write[ContainerHostConfigInfo] and
       (__ \ "Created").write[DateTime](dateTimeToMillis) and
       (__ \ "Name").writeNullable[String] and
       (__ \ "Path").writeNullable[String] and

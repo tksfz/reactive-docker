@@ -3,28 +3,29 @@ package edu.cornell.cac.docker.api.entities
 import play.api.libs.json._
 
 sealed case class ContainerConfiguration(
-    image: Option[String] = None,
-    cmd: Option[Seq[String]] = None,
-    hostname: Option[String] = None,
-    user: Option[String] = None,
-    memory: Option[Long] = None,
-    memorySwap: Option[Long] = None,
-    attachStdin: Option[Boolean] = None,
-    attachStdout: Option[Boolean] = None,
-    attachStderr: Option[Boolean] = None,
-    //portSpecs: Option[Seq[String]] = None, // deprec
-    tty: Option[Boolean] = None,
-    openStdin: Option[Boolean] = None,
-    stdinOnce: Option[Boolean] = None,
-    env: Option[Seq[String]] = None,
-    dns: Option[String] = None,
-    volumes: Option[Map[String, DockerVolume]] = None,
-    volumesFrom: Option[ContainerId] = None,
-    workingDir: Option[String] = None,
-    exposedPorts: Option[Map[String, DockerPortBinding]] = None,
-    entryPoint: Option[Seq[String]] = None,
-    networkDisabled: Option[Boolean] = Some(false),
-    onBuild: Option[Seq[String]] = None
+  Image: Option[String] = None,
+  Cmd: Option[Seq[String]] = None,
+  Hostname: Option[String] = None,
+  User: Option[String] = None,
+  Memory: Option[Long] = None,
+  MemorySwap: Option[Long] = None,
+  AttachStdin: Option[Boolean] = None,
+  AttachStdout: Option[Boolean] = None,
+  AttachStderr: Option[Boolean] = None,
+  //portSpecs: Option[Seq[String]] = None, // deprec
+  Tty: Option[Boolean] = None,
+  OpenStdin: Option[Boolean] = None,
+  StdinOnce: Option[Boolean] = None,
+  Env: Option[Seq[String]] = None,
+  Dns: Option[String] = None,
+  Volumes: Option[Map[String, DockerVolume]] = None,
+  VolumesFrom: Option[ContainerId] = None,
+  WorkingDir: Option[String] = None,
+  ExposedPorts: Option[Map[String, DockerPortBinding]] = None,
+  HostConfig: Option[HostConfig] = None,
+  Entrypoint: Option[Seq[String]] = None,
+  NetworkDisabled: Option[Boolean] = Some(false),
+  OnBuild: Option[Seq[String]] = None
 ) extends DockerEntity
 
 object ContainerConfig {

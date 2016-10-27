@@ -69,7 +69,7 @@ package object entities {
     name: String,
     maximumRetryCount: Int) extends DockerEntity
 
-  case class ContainerHostConfiguration(
+  case class ContainerHostConfigInfo(
     privileged: Boolean = false,
     publishAllPorts: Boolean = false,
     binds: Option[Seq[BindMountVolume]] = None,
@@ -89,7 +89,7 @@ package object entities {
     config: ContainerConfiguration,
     state: ContainerState,
     networkSettings: ContainerNetworkConfiguration,
-    hostConfig: ContainerHostConfiguration,
+    hostConfig: ContainerHostConfigInfo,
     created: DateTime,
     name: Option[String] = None,
     path: Option[String] = None,
@@ -99,7 +99,8 @@ package object entities {
     hostsPath: Option[String] = None,
     driver: Option[String] = None,
     volumes: Option[Seq[DockerVolume]] = None,
-    volumesRW: Option[Map[String, Boolean]] = None) extends DockerEntity
+    volumesRW: Option[Map[String, Boolean]] = None
+  ) extends DockerEntity
 
   case class ContainerChangelogRecord(
     path: String,

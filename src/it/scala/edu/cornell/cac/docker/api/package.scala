@@ -102,7 +102,7 @@ package object api {
       val cmd = Seq("/bin/bash")
       val containerName = "reactive-docker"
       val imageTag = RepositoryTag.create("ubuntu", Some("latest"))
-      val cfg = ContainerConfiguration(image=Some(imageTag.repo), cmd=Some(cmd), openStdin=Some(true)   )
+      val cfg = ContainerConfiguration(Image=Some(imageTag.repo), Cmd=Some(cmd), OpenStdin=Some(true)   )
 
       log.info(s"prepare container context - pulling ubuntu:latest ...")
 
@@ -154,7 +154,7 @@ package object api {
 		val containerId = Await.result(docker.containerCreate("busybox", cfg, Some(containerName)), timeout)._1
 		log.info(s"prepare runningContainer context - container ready with  $containerId, starting ...")
 
-		implicit val hostFmt: Format[ContainerHostConfiguration] = edu.cornell.cac.docker.api.json.Formats.containerHostConfigFmt
+		implicit val hostFmt: Format[ContainerHostConfigInfo] = edu.cornell.cac.docker.api.json.Formats.containerHostConfigFmt
 		Await.result(docker.containerStart(containerId), timeout)
 		log.info(s"prepare runningContainer context - container $containerId running")
 
@@ -200,7 +200,7 @@ package object api {
 		val containerId = Await.result(docker.containerCreate("busybox", cfg, Some(containerName)), timeout)._1
 	    log.info(s"prepare runningComplexContainer context - creating container $containerName (cmd: ${cmd.mkString})")
 
-		implicit val hostFmt: Format[ContainerHostConfiguration] = edu.cornell.cac.docker.api.json.Formats.containerHostConfigFmt
+		implicit val hostFmt: Format[ContainerHostConfigInfo] = edu.cornell.cac.docker.api.json.Formats.containerHostConfigFmt
 		Await.result(docker.containerStart(containerId), timeout)
 		log.info(s"prepare runningComplexContainer context - container $containerId running")
 

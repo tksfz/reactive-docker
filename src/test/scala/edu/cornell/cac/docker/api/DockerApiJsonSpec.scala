@@ -18,7 +18,7 @@ class DockerApiJsonSpec extends Specification  { def is =
      dummy test: actual is subset of expected $dummyTestFail2
 
     Testing ContainerConfiguration
-     Simple volume check: $testCfgTest
+     Simple volume check: $hc1CfgTest
   """.stripMargin
 
   // JSONCompare.compareJSON(expectedStr, actualStr, compareMode)
@@ -47,10 +47,15 @@ class DockerApiJsonSpec extends Specification  { def is =
 
   val outPathContainer = "/data"
   val outPathHost = "/tmp"
-  val testCfg = ContainerConfiguration(Some("test_container"), Some(Seq("pwd")),
-    volumes = Some(Map(outPathContainer -> DockerVolume(outPathContainer, outPathHost)))
+
+  val bindMntVol: BindMountVolume = BindMountVolume(outPathContainer, outPathHost)
+  val hc1Binds = HostConfig(Some(Seq(bindMntVol)))
+  val hc1Cfg = ContainerConfiguration(Some("test_container"), Some(Seq("pwd")),
+    Volumes = Some(Map(outPathContainer -> bindMntVol)),
+    HostConfig = Some(hc1Binds)
   )
-  lazy val testCfgExpected =
+  // Tested against API v1.22
+  lazy val hc1CfgExpected =
     """
       |{
       |    "Image" : "test_container",
@@ -64,10 +69,17 @@ class DockerApiJsonSpec extends Specification  { def is =
       |}
     """.stripMargin
 
-  lazy val testCfgActual = Json.prettyPrint(Json.toJson(testCfg))
+  lazy val hc1CfgActual = Json.prettyPrint(Json.toJson(hc1Cfg))
 
-  lazy val testCfgTest = compareJsonLenient(
-    testCfgExpected, testCfgActual
-  ) === true
+
+  lazy val hc1CfgTest = {
+    println(hc1CfgExpected)
+    println(hc1CfgActual)
+    // END DEBUG
+    compareJsonLenient(
+      hc1CfgExpected, hc1CfgActual
+    ) === true
+  }
+
 
 }
