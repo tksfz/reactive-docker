@@ -1,6 +1,6 @@
 package edu.cornell.cac.docker.api
 
-import api.DockerContext
+import api._
 import org.specs2.mutable.Specification
 import org.specs2.specification.AllExpectations
 import edu.cornell.cac.docker.api._
@@ -38,7 +38,7 @@ class DockerApiSpec extends Specification with DefaultDockerAuth {
   
   sequential
   
-  "DockerApi" should {
+  "DockerApi" >> {
     
     "connect to a remote docker instance and retrieve its version" in new DockerContext {
       await(docker.dockerVersion).version must beMatching("""\d+\.\d+\.\d+""".r)
@@ -143,12 +143,12 @@ class DockerApiSpec extends Specification with DefaultDockerAuth {
       } must throwA[RuntimeException] // removed in API v1.12+
     }
     
-    "inspect a docker image" in image {env:Image => 
+    "inspect a docker image" in image {env:Image =>
       val info = await(docker.imageInspect(env.imageName))
       info.id.id must not beEmpty
     }
     
-    "retrieve image history / changelog" in image {env:Image => 
+    "retrieve image history / changelog" in image {env:Image =>
       val hist = await(docker.imageHistory(env.imageName))
       hist.size must be_>(0)
     }
@@ -187,12 +187,12 @@ class DockerApiSpec extends Specification with DefaultDockerAuth {
       }
     }
     
-    "search for images" in image {env:Image => 
+    "search for images" in image {env:Image =>
       val res = await(docker.imageSearch(env.imageName))
       res.size must be_>(0)
     }
     
-    "export an image to a tarball" in image{env:Image => 
+    "export an image to a tarball" in image{env:Image =>
       	val tmpFile = TempFile.create(s"docker-export-image")
       	val os = new java.io.FileOutputStream(tmpFile)
     	await(docker.imageExport("busybox")(Iteratee.foreach(b => os.write(b))).flatMap(_.run))
@@ -201,8 +201,8 @@ class DockerApiSpec extends Specification with DefaultDockerAuth {
     	tmpFile.length().toInt must beGreaterThan(1024)
     }
     
-    
-    "import an image from a tarball" in image{env:Image => 
+
+    "import an image from a tarball" in image{env:Image =>
       	val tmpFile = TempFile.create(s"docker-export-image")
       	val os = new java.io.FileOutputStream(tmpFile)
     	await(docker.imageExport("busybox")(Iteratee.foreach(b => os.write(b))).flatMap(_.run))

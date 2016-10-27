@@ -25,7 +25,9 @@ package object api {
   }
 	
   case class Container(containerId: ContainerId, containerName: String, image: RepositoryTag, imageCmd: Seq[String])
-	
+
+	//FIXME: replace AroundOutside with ForEach
+	//FIXME: http://stackoverflow.com/questions/30727288/which-specs2-dependency-contains-aroundoutside
   trait DockerEnv[T] extends AroundOutside[T] {
 	  implicit val docker = Docker("localhost", 2375)
 	  implicit val timeout = Duration.create(60, SECONDS)
