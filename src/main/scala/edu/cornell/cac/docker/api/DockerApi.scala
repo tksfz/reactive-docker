@@ -299,7 +299,7 @@ trait DockerContainerApi extends DockerApiHelper {
         val id = json.flatMap(j => (j \ "Id").asOpt[String]).map(ContainerId(_)).getOrElse(ContainerId.emptyId)
         throw new ContainerNotRunningException(id, docker)
       case Right(resp) if resp.getStatusCode() == 409 => throw new DockerConflictException(s"create container request failed: ${resp.getResponseBody()}", docker) 
-      case Right(resp) if resp.getStatusCode() == 500 => throw new DockerInternalServerErrorException(docker)
+      case Right(resp) if resp.getStatusCode() == 500 => throw new DockerInternalServerErrorException(docker, resp.getResponseBody)
       case Right(resp) if (Seq(200, 201).contains(resp.getStatusCode())) => 
         val json = Json.parse(resp.getResponseBody()).asOpt[JsObject]
         val id = json.flatMap(j => (j \ "Id").asOpt[String]).map(ContainerId(_)).getOrElse(ContainerId.emptyId)
@@ -397,7 +397,7 @@ trait DockerContainerApi extends DockerApiHelper {
   def containerStart(id: ContainerId, config: Option[ContainerHostConfiguration] = None)(implicit docker: DockerClient, fmt: Format[ContainerHostConfiguration]): Future[Boolean] = {
     val req = config match {
       	case Some(cfg) => url(Endpoints.containerStart(id).toString).POST << Json.prettyPrint(Json.toJson(cfg)) <:< Map("Content-Type" -> "application/json")
-      	case _ => url(Endpoints.containerStart(id).toString).POST << Json.prettyPrint(Json.toJson(ContainerHostConfiguration())) <:< Map("Content-Type" -> "application/json")
+      	case _ => url(Endpoints.containerStart(id).toString).POST <:< Map("Content-Type" -> "application/json")
     }
     
     docker.dockerRequest(req).map { 
@@ -405,7 +405,7 @@ trait DockerContainerApi extends DockerApiHelper {
       case Right(resp) if (resp.getStatusCode() == 204) => true
       case Right(resp) if (resp.getStatusCode() == 304) => true		// new with 1.13 => container status was not modified
       case Right(resp) if (resp.getStatusCode() == 404) => throw new NoSuchContainerException(id, docker)
-      case Right(resp) => throw new DockerRequestException(s"unable to start container $id (StatusCode: ${resp.getStatusCode()}): ${resp.getStatusText()}", docker, None, Some(req))
+      case Right(resp) => throw new DockerRequestException(s"unable to start container $id (StatusCode: ${resp.getStatusCode()}): ${resp.getStatusText()} ${resp.getResponseBody}", docker, None, Some(req))
       case Left(t) => throw new DockerRequestException(s"unable to start container $id", docker, Some(t), Some(req))
     }
   }

@@ -53,7 +53,7 @@ sealed trait DockerClient extends DockerApi {
     Http(req).either.map{
       case Right(resp) if (Seq(200, 201, 202).contains(resp.getStatusCode())) => 
         Json.parse(resp.getResponseBody()).validate[T].fold(
-    		  errors => Left(new DockerResponseParseError(s"Json parse errors: ${errors.mkString("|")}", docker, resp.getResponseBody())),
+    		  errors => Left(new DockerResponseParseError(s"Json parse errors: ${errors.mkString("|")}" + resp.getResponseBody, docker, resp.getResponseBody())),
     		  data => Right(data) 
         )
       //case Right(resp) if (resp.getStatusCode() == 409) => 

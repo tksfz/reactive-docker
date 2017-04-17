@@ -12,8 +12,8 @@ class ContainerId private[ContainerId] (val id: String) extends DockerEntity {
 }
 		
 object ContainerId {
-	  val shortPattern = """^([a-z0-9A-Z])+$""".r
-	  val longPattern = """^([a-z0-9A-Z])+$""".r
+	  val shortPattern = """^([a-z0-9A-Z_])+$""".r
+	  val longPattern = """^([a-z0-9A-Z_])+$""".r
 
 	  def apply(s: String): ContainerId = s match {
 	    case shortPattern(id) => new ContainerId(s)

@@ -2,7 +2,7 @@ package edu.cornell.cac.docker.api.entities
 
 import play.api.libs.json._
 
-sealed case class ContainerConfiguration(
+case class ContainerConfiguration(
     image: Option[String] = None,
     cmd: Option[Seq[String]] = None,
     hostname: Option[String] = None,
@@ -22,6 +22,7 @@ sealed case class ContainerConfiguration(
     volumesFrom: Option[ContainerId] = None,
     workingDir: Option[String] = None,
     exposedPorts: Option[Map[String, DockerPortBinding]] = None,
+  hostConfig: Option[ContainerHostConfiguration] = None,
     entryPoint: Option[Seq[String]] = None,
     networkDisabled: Option[Boolean] = Some(false),
     onBuild: Option[Seq[String]] = None

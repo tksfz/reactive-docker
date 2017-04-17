@@ -63,7 +63,7 @@ object FormatsV112 {
 
   val containerInfoVolumesWrite: Writes[Seq[DockerVolume]] = new Writes[Seq[DockerVolume]] {
     def writes(seq: Seq[DockerVolume]): JsValue = {
-      val m = seq.map(el => Map(el.containerPath -> el)).reduceLeft(_ ++ _)
+      val m = seq.map(el => Map(el.containerPath.get -> el)).reduceLeft(_ ++ _)
       Json.toJson(m)
     }
   }
@@ -74,8 +74,9 @@ object FormatsV112 {
 
   val hostConfigPortBindingWrite: Writes[Map[String, DockerPortBinding]] = new Writes[Map[String, DockerPortBinding]] {
     def writes(ports: Map[String, DockerPortBinding]): JsValue = {
+      println("hello")
       val m= ports.flatMap{
-        case (_, cfg) => Map(s"${cfg.privatePort}/${cfg.protocol.getOrElse("tcp")}" -> Json.arr(Json.obj("HostPort" -> cfg.publicPort.map(_.toString), "HostIp" -> cfg.hostIp)))
+        case (_, cfg) => Map(s"${cfg.privatePort}/${cfg.protocol.getOrElse("tcp")}" -> Json.arr(Json.obj("HostPort" -> cfg.publicPort.get, "HostIp" -> cfg.hostIp.get)))
       }
       val ret = Json.toJson(m)
       ret
@@ -284,6 +285,7 @@ object FormatsV112 {
           case (regex(localPort, pType), cfg) => Map(s"$localPort/$pType" -> DockerPortBinding(localPort.toInt, (cfg \ ("HostIp")).asOpt[Int], Some(pType), (cfg \ ("HostPort")).asOpt[String]))
         })
       } and
+        (__ \ "HostConfig").readNullable[ContainerHostConfiguration] and
       (__ \ "Entrypoint").readNullable[Seq[String]] and
       (__ \ "NetworkDisabled").readNullable[Boolean] and
       (__ \ "OnBuild").readNullable[Seq[String]])(ContainerConfiguration.apply _),
@@ -307,6 +309,7 @@ object FormatsV112 {
       (__ \ "VolumesFrom").writeNullable[ContainerId] and
       (__ \ "WorkingDir").writeNullable[String] and
       (__ \ "ExposedPorts").writeNullable[Map[String, DockerPortBinding]](containerConfigPortBindingWrite) and
+      (__ \ "HostConfig").writeNullable[ContainerHostConfiguration](containerHostConfigFmt) and
       (__ \ "Entrypoint").writeNullable[Seq[String]] and
       (__ \ "NetworkDisabled").writeNullable[Boolean] and
       (__ \ "OnBuild").writeNullable[Seq[String]])(unlift(ContainerConfiguration.unapply)))
